@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#123b2a">
+<title>DWDS - Depo Water Distribution System</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #f1f5f2;
+    color: #26352c;
+}
+
+header {
+    background: #123b2a;
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+header p {
+    margin-bottom: 0;
+    font-size: 12px;
+}
+
+.container {
+    padding: 20px;
+    max-width: 500px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px #00000012;
+}
+
+input, button {
+    width: 100%;
+    padding: 13px;
+    margin: 7px 0;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+input {
+    border: 1px solid #ccc;
+}
+
+button {
+    border: none;
+    background: #176b43;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #52675b;
+}
+
+button.danger {
+    background: #b73535;
+}
+
+.hidden {
+    display: none;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>DWDS</h2>
+    <p>DEPO WATER DISTRIBUTION SYSTEM</p>
+    <p>OFFLINE OPERATIONAL SYSTEM V1.0</p>
+</header>
+
+<div class="container">
+
+<section id="loginPage" class="card">
+    <h3>LOGIN PETUGAS</h3>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">LOGIN</button>
+    <p id="loginMessage"></p>
+</section>
+
+<section id="dashboard" class="hidden">
+
+    <div class="card">
+        <h3>SELAMAT DATANG</h3>
+        <p id="userInfo"></p>
+        <p id="operationalStatus">Status: BELUM OPEN</p>
+    </div>
+
+    <div class="card">
+        <h3>RINGKASAN HARI INI</h3>
+
+        <div class="stat">
+            <span>Total Surat</span>
+            <b id="totalSurat">0</b>
+        </div>
+
+        <div class="stat">
+            <span>Total Penerima</span>
+            <b id="totalPenerima">0</b>
+        </div>
+
+        <div class="stat">
+            <span>Total Galon</span>
+            <b id="totalGalon">0</b>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>OPERASIONAL DEPO</h3>
+        <button onclick="openOperational()">OPEN OPERASIONAL</button>
+        <button class="secondary" onclick="showComing()">SCAN QR CODE</button>
+        <button class="secondary" onclick="showComing()">REKAP TRANSAKSI</button>
+        <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
+    </div>
+
+    <div class="card">
+        <button class="secondary" onclick="logout()">LOGOUT</button>
+    </div>
+
+</section>
+
+</div>
+
+<footer>
+    DWDS V1.0 | Depo Water Distribution System
+</footer>
+
+<script>
+
+let currentUser = null;
+
+function login() {
+
+    let u = document.getElementById("username").value.trim();
+    let p = document.getElementById("password").value;
+
+    let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
+
+    if (!users) {
+        users = [{
+            username: "admin",
+            password: "admin123",
+            role: "Administrator"
+        }];
+
+        localStorage.setItem("dwds_users", JSON.stringify(users));
+    }
+
+    let user = users.find(x =>
+        x.username === u &&
+        x.password === p
+    );
+
+    if (user) {
+        currentUser = user;
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("userInfo").innerText =
+            user.username + " | " + user.role;
+        updateDashboard();
+    } else {
+        document.getElementById("loginMessage").innerText =
+            "Username atau password salah!";
+    }
+}
+
+function openOperational() {
+
+    if (localStorage.getItem("dwds_status") === "OPEN") {
+        alert("Operasional sudah dibuka!");
+        return;
+    }
+
+    if (!confirm("Mulai operasional DEPO hari ini?")) return;
+
+    localStorage.setItem("dwds_status", "OPEN");
+    localStorage.setItem("dwds_date", new Date().toISOString().slice(0,10));
+    localStorage.setItem("dwds_transactions", JSON.stringify([]));
+
+    updateDashboard();
+}
+
+function closeOperational() {
+
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Operasional belum dibuka!");
+        return;
+    }
+
+    if (!confirm("Yakin ingin CLOSE operasional?")) return;
+
+    localStorage.setItem("dwds_status", "CLOSED");
+
+    updateDashboard();
+
+    alert("Operasional berhasil ditutup.");
+}
+
+function updateDashboard() {
+
+    let status = localStorage.getItem("dwds_status") || "BELUM OPEN";
+
+    document.getElementById("operationalStatus").innerText =
+        "Status: " + status;
+
+    let data = JSON.parse(
+        localStorage.getItem("dwds_transactions") || "[]"
+    );
+
+    document.getElementById("totalSurat").innerText = data.length;
+
+    let penerima = data.reduce(
+        (sum, item) => sum + item.jumlah, 0
+    );
+
+    document.getElementById("totalPenerima").innerText = penerima;
+    document.getElementById("totalGalon").innerText = penerima;
+}
+
+function showComing() {
+    alert("Fitur akan kita bangun pada tahap berikutnya.");
+}
+
+function logout() {
+    currentUser = null;
+    document.getElementById("dashboard").classList.add("hidden");
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+
+</script>
+
+</body>
+</html>
