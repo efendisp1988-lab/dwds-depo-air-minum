@@ -462,55 +462,52 @@ function saveDeliveryLetter() {
         alert("Operasional sudah ditutup. Tidak dapat menambah transaksi.");
         return;
     }
-
     const nomor = document.getElementById("suratNomor").value.trim();
     const tanggal = document.getElementById("suratTanggal").value;
-    const rawNames = document.getElementById("recipientNames").value;
-    const names = rawNames.split(/\r?\n/).map(n => n.trim()).filter(Boolean);
+    const names = document.getElementById("recipientNames").value.split(/\r?\n/).map(n => n.trim()).filter(Boolean);
     const message = document.getElementById("formMessage");
-
     if (!nomor || !tanggal || names.length === 0) {
-        message.innerText = "Lengkapi nomor surat, tanggal, dan minimal satu nama penerima.";
+        message.innerText = "Lengkapi nomor surat, tanggal, dan import daftar Excel berisi NIK/NIP serta Nama.";
         return;
     }
-
+    if (importedRecipientRecords.length !== names.length || importedRecipientRecords.some(r => !r.nik || !r.nama)) {
+        message.innerText = "Import ulang file Excel yang memiliki NIK/NIP dan Nama lengkap untuk setiap penerima.";
+        return;
+    }
     const transactions = getTransactions();
     if (transactions.some(t => t.nomor.toLowerCase() === nomor.toLowerCase())) {
         message.innerText = "Nomor surat jalan ini sudah pernah disimpan. Periksa kembali agar tidak terjadi duplikasi.";
         return;
     }
-
-    const uniqueNames = [...new Set(names.map(n => n.toLowerCase()))];
-    if (uniqueNames.length !== names.length) {
-        message.innerText = "Ada nama penerima yang tercantum lebih dari satu kali. Periksa daftar nama terlebih dahulu.";
+    const ids = importedRecipientRecords.map(r => String(r.nik).replace(/\s+/g, "").toLowerCase());
+    if (new Set(ids).size !== ids.length) {
+        message.innerText = "NIK/NIP ganda ditemukan. Periksa kembali file Excel.";
         return;
     }
-
+    const records = importedRecipientRecords.map(r => ({
+        nik: String(r.nik), nama: r.nama, unit: r.unit || "", divisi: r.divisi || "",
+        galon: Number(r.galon) > 0 ? Number(r.galon) : 1
+    }));
     const entry = {
-        id: "DWDS-" + Date.now(),
-        nomor,
-        tanggal,
-        recipients: names,
-        recipientRecords: names.map(n => { const r = importedRecipientRecords.find(x => x.nama.toLowerCase() === n.toLowerCase()); return { nama: n, unit: r ? r.unit : '', divisi: r ? r.divisi : '', galon: r && Number(r.galon) > 0 ? Number(r.galon) : 1 }; }),
-        jumlah: names.length,
-        galon: names.reduce((sum,n) => { const r = importedRecipientRecords.find(x => x.nama.toLowerCase() === n.toLowerCase()); return sum + (r && Number(r.galon) > 0 ? Number(r.galon) : 1); }, 0),
+        id: "DWDS-" + Date.now(), nomor, tanggal,
+        recipients: records.map(r => r.nama),
+        recipientRecords: records,
+        jumlah: records.length,
+        galon: records.reduce((sum, r) => sum + r.galon, 0),
         createdAt: new Date().toISOString(),
         createdBy: currentUser ? currentUser.username : "unknown"
     };
-
     transactions.push(entry);
     localStorage.setItem("dwds_transactions", JSON.stringify(transactions));
-
     document.getElementById("suratNomor").value = "";
     document.getElementById("recipientNames").value = "";
     importedRecipientRecords = [];
     document.getElementById("recipientFile").value = "";
     document.getElementById("importMessage").innerText = "";
     document.getElementById("recipientCount").innerText = "Jumlah penerima: 0";
-    message.innerText = "Berhasil disimpan: " + names.length + " penerima dan " + entry.galon + " galon.";
+    message.innerText = "Berhasil disimpan: " + records.length + " penerima dan " + entry.galon + " galon.";
     updateDashboard();
 }
-
 function displayDate(value) {
     if (!value) return "-";
     const parts = String(value).slice(0, 10).split("-");
@@ -931,63 +928,61 @@ async function importRecipientFile(file) {
     msg.innerText = "Membaca file " + file.name + "...";
     try {
         const ext = file.name.split(".").pop().toLowerCase();
-        let text = "";
-        if (ext === "xlsx" || ext === "xls") {
-            if (typeof XLSX === "undefined") throw new Error("Komponen Excel belum termuat.");
-            const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-            if (!rows.length) throw new Error("File Excel tidak berisi data.");
-            const normalizeHeader = v => String(v || "").trim().toLowerCase().replace(/[_-]/g, " ").replace(/[^a-z0-9 ]/g, "").replace(/\\s+/g, " ");
-            const nameAliases = ["nama", "nama penerima", "penerima", "name", "nama karyawan", "nama pegawai"];
-            const unitAliases = ["unit", "nama unit", "unit kerja"];
-            const divAliases = ["divisi", "bagian", "departemen", "department"];
-            const gallonAliases = ["galon", "jumlah galon", "jml galon", "qty galon", "jumlah", "qty"];
-            let headerRow = -1, nameCol = -1, unitCol = -1, divCol = -1, gallonCol = -1;
-            for (let ri = 0; ri < Math.min(rows.length, 15); ri++) {
-                const headers = rows[ri].map(normalizeHeader);
-                const candidate = headers.findIndex(v => nameAliases.includes(v));
-                if (candidate >= 0) {
-                    headerRow = ri; nameCol = candidate;
-                    unitCol = headers.findIndex(v => unitAliases.includes(v));
-                    divCol = headers.findIndex(v => divAliases.includes(v));
-                    gallonCol = headers.findIndex(v => gallonAliases.includes(v));
-                    break;
-                }
-            }
-            if (nameCol < 0) throw new Error("Judul kolom nama belum ditemukan pada 15 baris pertama. Pastikan ada judul kolom Nama, Nama Penerima, atau Nama Karyawan.");
-            importedRecipientRecords = rows.slice(headerRow + 1).map(row => ({nama:String(row[nameCol] || "").trim(),unit:unitCol >= 0 ? String(row[unitCol] || "").trim() : "",divisi:divCol >= 0 ? String(row[divCol] || "").trim() : "",galon:gallonCol >= 0 ? Number(row[gallonCol]) || 0 : 1})).filter(r => r.nama);
-            text = importedRecipientRecords.map(r => r.nama).join("\n");
-        } else if (ext === "pdf") {
-            text = await readPdfText(file);
-        } else if (ext === "docx") {
-            text = await readDocxText(file);
-        } else if (ext === "csv" || ext === "txt") {
-            text = await file.text();
-            if (ext === "csv") {
-                const lines = text.split(/\r?\n/).filter(Boolean);
-                const first = lines[0] || "";
-                const header = first.split(/[;,\t]/).map(v => v.replace(/^"|"$/g, "").trim().toLowerCase());
-                let col = header.findIndex(v => /^(nama|nama penerima|penerima|name)$/.test(v));
-                if (col >= 0) text = lines.slice(1).map(line => line.split(/[;,\t]/)[col] || "").join("\n");
-                else text = lines.map(line => line.split(/[;,\t]/)[0]).join("\n");
-            }
-        } else {
-            throw new Error("Format belum didukung. Gunakan DOCX, PDF, XLSX, XLS, CSV, atau TXT.");
+        if (ext !== "xlsx" && ext !== "xls") {
+            throw new Error("Untuk tahap NIK/NIP, gunakan file Excel (.xlsx/.xls) dengan kolom NIK/NIP dan Nama. Format lain belum mendukung identitas unik.");
         }
-
-        const imported = cleanImportedLines(text);
-        if (!imported.length) throw new Error("Tidak ditemukan nama. Pastikan nama penerima berada satu nama per baris atau satu kolom.");
-        const existing = document.getElementById("recipientNames").value.trim();
-        const combined = existing ? existing + "\n" + imported.join("\n") : imported.join("\n");
-        document.getElementById("recipientNames").value = combined;
+        if (typeof XLSX === "undefined") throw new Error("Komponen Excel belum termuat.");
+        const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", raw: false });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+        if (!rows.length) throw new Error("File Excel tidak berisi data.");
+        const normalizeHeader = v => String(v || "").trim().toLowerCase().replace(/[_-]/g, " ").replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ");
+        const nameAliases = ["nama", "nama penerima", "penerima", "name", "nama karyawan", "nama pegawai"];
+        const idAliases = ["nik", "nip", "niknip", "nik nip", "nik karyawan", "nip karyawan", "nomor induk karyawan", "nomor induk pegawai", "id karyawan", "employee id"];
+        const unitAliases = ["unit", "nama unit", "unit kerja"];
+        const divAliases = ["divisi", "bagian", "departemen", "department"];
+        const gallonAliases = ["galon", "jumlah galon", "jml galon", "qty galon", "jumlah", "qty"];
+        let headerRow = -1, nameCol = -1, idCol = -1, unitCol = -1, divCol = -1, gallonCol = -1;
+        for (let ri = 0; ri < Math.min(rows.length, 15); ri++) {
+            const headers = rows[ri].map(normalizeHeader);
+            const candidate = headers.findIndex(v => nameAliases.includes(v));
+            const idCandidate = headers.findIndex(v => idAliases.includes(v));
+            if (candidate >= 0 && idCandidate >= 0) {
+                headerRow = ri; nameCol = candidate; idCol = idCandidate;
+                unitCol = headers.findIndex(v => unitAliases.includes(v));
+                divCol = headers.findIndex(v => divAliases.includes(v));
+                gallonCol = headers.findIndex(v => gallonAliases.includes(v));
+                break;
+            }
+        }
+        if (nameCol < 0 || idCol < 0) throw new Error("Kolom wajib belum ditemukan. Pastikan Excel memiliki judul kolom NIK/NIP dan Nama.");
+        const parsed = rows.slice(headerRow + 1).map((row, i) => ({
+            nik: String(row[idCol] == null ? "" : row[idCol]).trim(),
+            nama: String(row[nameCol] == null ? "" : row[nameCol]).trim(),
+            unit: unitCol >= 0 ? String(row[unitCol] || "").trim() : "",
+            divisi: divCol >= 0 ? String(row[divCol] || "").trim() : "",
+            galon: gallonCol >= 0 ? Number(row[gallonCol]) || 0 : 1,
+            sourceRow: headerRow + i + 2
+        })).filter(r => r.nama || r.nik);
+        if (!parsed.length) throw new Error("Tidak ditemukan data penerima di bawah judul kolom.");
+        const missing = parsed.filter(r => !r.nik || !r.nama);
+        if (missing.length) throw new Error("Ada " + missing.length + " baris tanpa NIK/NIP atau Nama. Periksa baris Excel: " + missing.slice(0, 8).map(r => r.sourceRow).join(", ") + ".");
+        const seen = new Set(), duplicates = [];
+        parsed.forEach(r => {
+            const key = r.nik.replace(/\s+/g, "").toLowerCase();
+            if (seen.has(key)) duplicates.push(r.nik);
+            seen.add(key);
+        });
+        if (duplicates.length) throw new Error("NIK/NIP ganda ditemukan: " + [...new Set(duplicates)].slice(0, 8).join(", ") + ". Setiap karyawan harus memiliki NIK/NIP unik.");
+        importedRecipientRecords = parsed.map(({sourceRow, ...r}) => r);
+        document.getElementById("recipientNames").value = importedRecipientRecords.map(r => r.nama).join("\n");
         updateRecipientCount();
-        msg.innerText = "Berhasil membaca " + imported.length + " penerima dari " + file.name + ". " + (importedRecipientRecords.length ? "Data Unit, Divisi, dan Galon ikut disimpan." : "Untuk membawa Unit, Divisi, dan Galon, gunakan Excel dengan kolom Nama Penerima, Unit, Divisi, dan Jumlah Galon.") + " Periksa daftar sebelum disimpan.";
+        msg.innerText = "Berhasil membaca " + importedRecipientRecords.length + " penerima. NIK/NIP, Nama" + (unitCol >= 0 ? ", Unit" : "") + (divCol >= 0 ? ", Divisi" : "") + (gallonCol >= 0 ? ", Galon" : "") + " terbaca. NIK/NIP kosong atau ganda: tidak ada.";
     } catch (error) {
+        importedRecipientRecords = [];
         msg.innerText = "File belum dapat dibaca: " + error.message;
     }
 }
-
 function getReportProfile(){return JSON.parse(localStorage.getItem("dwds_report_profile")||"{}");}
 function showCompanyProfilePage(){
  document.getElementById("companyProfilePage").classList.remove("hidden");
