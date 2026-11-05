@@ -174,6 +174,12 @@ footer {
         <input id="suratTanggal" type="date">
         <label for="recipientNames">Daftar Nama Penerima</label>
         <textarea id="recipientNames" rows="8" placeholder="Satu nama per baris&#10;Contoh:&#10;Budi Santoso&#10;Andi Saputra&#10;Siti Aminah"></textarea>
+        <div style="margin-top:14px;padding:14px;background:#f1f5f2;border-radius:9px">
+            <b>IMPORT DAFTAR PENERIMA DARI FILE</b>
+            <p style="font-size:13px">Pilih file Word (.docx), PDF, Excel (.xlsx/.xls), CSV, atau TXT. Sistem akan mengambil teks/nama untuk diperiksa sebelum disimpan.</p>
+            <input id="recipientFile" type="file" accept=".docx,.pdf,.xlsx,.xls,.csv,.txt">
+            <p id="importMessage" style="font-size:13px"></p>
+        </div>
         <p id="recipientCount">Jumlah penerima: 0</p>
         <button onclick="saveDeliveryLetter()">SIMPAN SURAT JALAN</button>
         <button class="secondary" onclick="hideInputForm()">KEMBALI</button>
@@ -220,6 +226,8 @@ footer {
 
 <script src="qrcode.min.js"></script>
 <script src="jsQR.js"></script>
+<script src="xlsx.full.min.js"></script>
+<script src="pdf.min.js"></script>
 <script>
 let currentUser = null;
 let activeQr = null;
@@ -620,12 +628,128 @@ function logout() {
 document.addEventListener("DOMContentLoaded", () => {
     const names = document.getElementById("recipientNames");
     if (names) {
-        names.addEventListener("input", () => {
-            const count = names.value.split(/\r?\n/).map(n => n.trim()).filter(Boolean).length;
-            document.getElementById("recipientCount").innerText = "Jumlah penerima: " + count;
-        });
+        names.addEventListener("input", () => updateRecipientCount());
     }
+    const fileInput = document.getElementById("recipientFile");
+    if (fileInput) fileInput.addEventListener("change", event => importRecipientFile(event.target.files[0]));
 });
+
+function updateRecipientCount() {
+    const value = document.getElementById("recipientNames").value;
+    const count = value.split(/\r?\n/).map(n => n.trim()).filter(Boolean).length;
+    document.getElementById("recipientCount").innerText = "Jumlah penerima: " + count;
+}
+
+function cleanImportedLines(text) {
+    return text.split(/\r?\n/)
+        .map(line => line.replace(/^\s*\d+[.)\-]\s*/, "").replace(/^[-•*]\s*/, "").trim())
+        .filter(line => line && !/^(no|nomor|nama( penerima)?|daftar penerima|penerima)$/i.test(line));
+}
+
+async function readDocxText(file) {
+    // Baca file DOCX sebagai ZIP dan ambil teks dari word/document.xml tanpa koneksi internet.
+    const buffer = await file.arrayBuffer();
+    const view = new DataView(buffer);
+    let eocd = -1;
+    for (let i = view.byteLength - 22; i >= Math.max(0, view.byteLength - 65558); i--) {
+        if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error("Struktur file DOCX tidak dikenali.");
+    const entries = view.getUint16(eocd + 10, true);
+    const centralOffset = view.getUint32(eocd + 16, true);
+    let pos = centralOffset;
+    const decoder = new TextDecoder();
+    for (let i = 0; i < entries; i++) {
+        if (view.getUint32(pos, true) !== 0x02014b50) break;
+        const method = view.getUint16(pos + 10, true);
+        const compressedSize = view.getUint32(pos + 20, true);
+        const nameLen = view.getUint16(pos + 28, true);
+        const extraLen = view.getUint16(pos + 30, true);
+        const commentLen = view.getUint16(pos + 32, true);
+        const localOffset = view.getUint32(pos + 42, true);
+        const name = decoder.decode(new Uint8Array(buffer, pos + 46, nameLen));
+        if (name === "word/document.xml") {
+            const localNameLen = view.getUint16(localOffset + 26, true);
+            const localExtraLen = view.getUint16(localOffset + 28, true);
+            const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+            const compressed = new Uint8Array(buffer, dataStart, compressedSize);
+            let xmlBytes;
+            if (method === 0) xmlBytes = compressed;
+            else if (method === 8 && typeof DecompressionStream !== "undefined") {
+                const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+                xmlBytes = new Uint8Array(await new Response(stream).arrayBuffer());
+            } else throw new Error("Browser tidak mendukung pembacaan DOCX terkompresi.");
+            const xml = new DOMParser().parseFromString(decoder.decode(xmlBytes), "application/xml");
+            return Array.from(xml.getElementsByTagName("w:p")).map(p =>
+                Array.from(p.getElementsByTagName("w:t")).map(t => t.textContent).join("")
+            ).filter(Boolean).join("\n");
+        }
+        pos += 46 + nameLen + extraLen + commentLen;
+    }
+    throw new Error("Teks dokumen Word tidak ditemukan.");
+}
+
+async function readPdfText(file) {
+    if (typeof pdfjsLib === "undefined") throw new Error("Komponen pembaca PDF belum termuat.");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjsLib.getDocument({ data, disableWorker: true }).promise;
+    const pages = [];
+    for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+        const page = await pdf.getPage(pageNo);
+        const content = await page.getTextContent();
+        pages.push(content.items.map(item => item.str).join("\n"));
+    }
+    return pages.join("\n");
+}
+
+async function importRecipientFile(file) {
+    const msg = document.getElementById("importMessage");
+    if (!file) return;
+    msg.innerText = "Membaca file " + file.name + "...";
+    try {
+        const ext = file.name.split(".").pop().toLowerCase();
+        let text = "";
+        if (ext === "xlsx" || ext === "xls") {
+            if (typeof XLSX === "undefined") throw new Error("Komponen Excel belum termuat.");
+            const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+            if (!rows.length) throw new Error("File Excel tidak berisi data.");
+            const first = rows[0].map(v => String(v).trim().toLowerCase());
+            let col = first.findIndex(v => /^(nama|nama penerima|penerima|name)$/.test(v));
+            if (col < 0) col = 0;
+            const start = first.some(v => /^(no|nomor|nama|nama penerima|penerima|name)$/.test(v)) ? 1 : 0;
+            text = rows.slice(start).map(row => row[col]).filter(v => String(v).trim() !== "").join("\n");
+        } else if (ext === "pdf") {
+            text = await readPdfText(file);
+        } else if (ext === "docx") {
+            text = await readDocxText(file);
+        } else if (ext === "csv" || ext === "txt") {
+            text = await file.text();
+            if (ext === "csv") {
+                const lines = text.split(/\r?\n/).filter(Boolean);
+                const first = lines[0] || "";
+                const header = first.split(/[;,\t]/).map(v => v.replace(/^"|"$/g, "").trim().toLowerCase());
+                let col = header.findIndex(v => /^(nama|nama penerima|penerima|name)$/.test(v));
+                if (col >= 0) text = lines.slice(1).map(line => line.split(/[;,\t]/)[col] || "").join("\n");
+                else text = lines.map(line => line.split(/[;,\t]/)[0]).join("\n");
+            }
+        } else {
+            throw new Error("Format belum didukung. Gunakan DOCX, PDF, XLSX, XLS, CSV, atau TXT.");
+        }
+
+        const imported = cleanImportedLines(text);
+        if (!imported.length) throw new Error("Tidak ditemukan nama. Pastikan nama penerima berada satu nama per baris atau satu kolom.");
+        const existing = document.getElementById("recipientNames").value.trim();
+        const combined = existing ? existing + "\n" + imported.join("\n") : imported.join("\n");
+        document.getElementById("recipientNames").value = combined;
+        updateRecipientCount();
+        msg.innerText = "Berhasil mengambil " + imported.length + " baris dari " + file.name + ". Periksa daftar nama, hapus judul/teks yang tidak diperlukan, lalu simpan surat jalan.";
+    } catch (error) {
+        msg.innerText = "File belum dapat dibaca: " + error.message;
+    }
+}
 </script>
 
 </body>
