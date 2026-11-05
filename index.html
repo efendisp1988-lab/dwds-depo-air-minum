@@ -163,8 +163,14 @@ footer {
         <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
         <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
-        <button class="secondary" onclick="document.getElementById('reportPage').classList.remove('hidden');document.getElementById('inputPage').classList.add('hidden');document.getElementById('scannerPage').classList.add('hidden');document.getElementById('recapPage').classList.add('hidden');">LAPORAN & PROFIL PERUSAHAAN</button>
+        <button class="secondary" onclick="showReportPage()">LAPORAN & PROFIL PERUSAHAAN</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
+    </div>
+    <div class="card">
+        <h3>CHECKLIST PENYELESAIAN HARIAN</h3>
+        <p style="font-size:13px">Pastikan laporan kegiatan hari ini sudah disimpan dan dikirim kepada KTU.</p>
+        <div id="dailyChecklist">Memuat status...</div>
+        <button class="secondary" onclick="showReportPage()">BUKA LAPORAN HARIAN</button>
     </div>
 
     <section id="inputPage" class="card hidden">
@@ -234,6 +240,13 @@ footer {
         <label>Tanggal Mulai</label><input id="reportStart" type="date"><label>Tanggal Akhir</label><input id="reportEnd" type="date">
         <button onclick="exportReportExcel()">DOWNLOAD LAPORAN EXCEL</button>
         <button class="secondary" onclick="printReportPdf()">CETAK / SIMPAN LAPORAN PDF</button>
+        <hr>
+        <h4>KONFIRMASI PENYELESAIAN LAPORAN HARIAN</h4>
+        <p style="font-size:13px">Konfirmasikan setelah file benar-benar tersimpan di HP dan laporan sudah dikirim ke KTU.</p>
+        <div id="reportDailyStatus" style="padding:10px;background:#f1f5f2;border-radius:8px;font-size:13px"></div>
+        <button class="secondary" onclick="confirmDailyTask('excel')">KONFIRMASI EXCEL SUDAH DISIMPAN</button>
+        <button class="secondary" onclick="confirmDailyTask('pdf')">KONFIRMASI PDF SUDAH DISIMPAN</button>
+        <button onclick="confirmDailyTask('sent')">KONFIRMASI LAPORAN SUDAH DIKIRIM KE KTU</button>
         <p id="reportMessage"></p><button class="secondary" onclick="hideReportPage()">KEMBALI KE DASHBOARD</button>
     </section>
 
@@ -515,6 +528,40 @@ function escapeHtml(value) {
     })[ch]);
 }
 
+function getDailyChecklist() {
+    const key = "dwds_daily_checklist_" + localDateString();
+    return JSON.parse(localStorage.getItem(key) || '{"excel":false,"pdf":false,"sent":false}');
+}
+
+function saveDailyChecklist(data) {
+    localStorage.setItem("dwds_daily_checklist_" + localDateString(), JSON.stringify(data));
+}
+
+function confirmDailyTask(task) {
+    const data = getDailyChecklist();
+    if (task === "sent" && (!data.excel || !data.pdf)) {
+        alert("Simpan dan konfirmasi Excel serta PDF terlebih dahulu.");
+        return;
+    }
+    const labels = {excel:"Excel sudah disimpan",pdf:"PDF sudah disimpan",sent:"Laporan sudah dikirim ke KTU"};
+    if (!labels[task]) return;
+    if (!confirm("Konfirmasi: " + labels[task] + "?")) return;
+    data[task] = true;
+    data[task + "At"] = new Date().toISOString();
+    saveDailyChecklist(data);
+    updateDailyChecklist();
+}
+
+function updateDailyChecklist() {
+    const data = getDailyChecklist();
+    const rows = [["Excel tersimpan",data.excel],["PDF tersimpan",data.pdf],["Dikirim ke KTU",data.sent]];
+    const html = rows.map(row => "<div class='stat'><span>" + row[0] + "</span><b>" + (row[1] ? "SELESAI" : "BELUM") + "</b></div>").join("");
+    const dash = document.getElementById("dailyChecklist");
+    if (dash) dash.innerHTML = html;
+    const report = document.getElementById("reportDailyStatus");
+    if (report) report.innerHTML = html + "<p>Tanggal checklist: " + displayDate(localDateString()) + "</p>";
+}
+
 function updateDashboard() {
     const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
     document.getElementById("operationalStatus").innerText = "Status: " + status;
@@ -527,6 +574,7 @@ function updateDashboard() {
     document.getElementById("totalPenerima").innerText = recipients;
     document.getElementById("totalGalon").innerText =
         todaysData.reduce((sum, item) => sum + item.galon, 0);
+    updateDailyChecklist();
 }
 
 function showScanner() {
@@ -813,6 +861,7 @@ async function importRecipientFile(file) {
 function getReportProfile(){return JSON.parse(localStorage.getItem("dwds_report_profile")||"{}");}
 function showReportPage(){
  document.getElementById("reportPage").classList.remove("hidden");
+ updateDailyChecklist();
  ["inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
  const p=getReportProfile();
  ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{if(p[id]!==undefined)document.getElementById(id).value=p[id];});
