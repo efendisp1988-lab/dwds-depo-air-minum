@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "DWDS - Depo Water Distribution System",
+  "short_name": "DWDS",
+  "description": "Sistem distribusi air depo",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f2",
+  "theme_color": "#123b2a"
+}
