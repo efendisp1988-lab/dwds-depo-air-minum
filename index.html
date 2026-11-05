@@ -328,13 +328,7 @@ footer {
         <button onclick="adminCreateAccount()">BUAT AKUN</button>
         <p id="adminAccountMessage" role="status"></p>
         <h4>DAFTAR AKUN</h4><div id="adminAccountList"></div>
-        <hr>
-        <h4>PEMINDAHAN AKUN KE HP / LAPTOP LAIN</h4>
-        <p style="font-size:12px">Ekspor daftar akun dari perangkat Administrator, lalu impor file yang sama pada perangkat HP atau laptop pengguna. Ulangi impor setelah ada perubahan akun atau reset password.</p>
-        <button class="secondary" onclick="exportDwdsAccounts()">EKSPOR DATA AKUN</button>
-        <label>Impor data akun dari Administrator</label><input id="importAccountsFile" type="file" accept=".json,application/json">
-        <button class="secondary" onclick="importDwdsAccounts()">IMPOR DATA AKUN</button>
-        <p style="font-size:12px;color:#a33">File ekspor berisi kredensial akun. Simpan dan kirim secara aman, jangan dibagikan ke pihak lain.</p>
+
         <button class="secondary" onclick="backToDashboard()">KEMBALI KE DASHBOARD</button>
     </section>
 
@@ -727,40 +721,6 @@ function adminResetPassword(index) {
     localStorage.setItem("dwds_users",JSON.stringify(users));
     alert("Password akun "+user.username+" berhasil direset. Ekspor ulang data akun untuk memperbarui perangkat lain.");
     renderAdminAccountList();
-}
-function exportDwdsAccounts() {
-    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
-    const data={app:"DWDS",version:1,exportedAt:new Date().toISOString(),users:getDwdsUsers()};
-    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="DWDS-AKUN-"+localDateString()+".json";a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-}
-function importDwdsAccounts() {
-    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
-    const input=document.getElementById("importAccountsFile");
-    const file=input.files&&input.files[0]; if(!file){alert("Pilih file data akun dari Administrator.");return;}
-    const reader=new FileReader();
-    reader.onload=()=>{
-        try{
-            const data=JSON.parse(reader.result);
-            if(data.app!=="DWDS"||!Array.isArray(data.users)||!data.users.some(u=>String(u.role).toLowerCase()==="administrator"))throw new Error("Format atau akun Administrator tidak valid.");
-            if(!confirm("Impor akan MENGGANTI daftar akun pada perangkat ini. Lanjutkan?"))return;
-            localStorage.setItem("dwds_users",JSON.stringify(data.users));
-            const updated=getDwdsUsers();
-            const admin=updated.find(u=>String(u.username).toLowerCase()===String(currentUser.username).toLowerCase());
-            if(!admin){alert("Akun pada perangkat ini tidak ada dalam file. Silakan login ulang dengan akun yang tercantum di file.");}
-            else {currentUser=admin;alert("Data akun berhasil diimpor.");}
-            renderAdminAccountList();
-        }catch(e){alert("Gagal impor data akun: "+e.message);}
-        input.value="";
-    };
-    reader.readAsText(file);
-}
-function toggleAccountStatus(index) {
-    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
-    const users=getDwdsUsers(); if(!users[index]||String(users[index].username).toLowerCase()==="admin")return;
-    users[index].active=users[index].active===false;
-    localStorage.setItem("dwds_users",JSON.stringify(users)); renderAdminAccountList();
 }
 function getDwdsUsers() {
     let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
