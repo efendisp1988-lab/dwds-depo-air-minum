@@ -268,7 +268,6 @@ footer {
     <p class="login-version">DWDS V1.0 · OFFLINE OPERATIONAL SYSTEM</p>
 </section>
 <div class="login-account-links">
-    <button type="button" class="secondary" onclick="showAccountPage('register')">CREATE AKUN BARU</button>
     <button type="button" class="secondary" onclick="showAccountPage('recovery')">LUPA PASSWORD?</button>
 </div>
 <section id="registerPage" class="card login-card hidden">
@@ -341,6 +340,7 @@ footer {
         <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
         <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
         <button class="danger hidden" id="dataManagementButton" onclick="showDataManagement()">KELOLA / HAPUS LAPORAN (ADMIN)</button>
+        <button class="danger hidden" id="accountManagementButton" onclick="showAdminAccounts()">KELOLA AKUN (ADMIN)</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
     <div class="card">
@@ -349,6 +349,21 @@ footer {
         <div id="dailyChecklist">Memuat status...</div>
         <button class="secondary" onclick="showReportPage()">BUKA LAPORAN HARIAN</button>
     </div>
+
+    <section id="adminAccountsPage" class="card hidden">
+        <h3>KELOLA AKUN PENGGUNA</h3>
+        <p>Buat akun Petugas Depo atau KTU. Akun tersimpan pada perangkat ini.</p>
+        <label>Jenis Akun</label>
+        <select id="adminNewRole"><option value="Petugas Depo">Petugas Depo</option><option value="KTU">KTU</option></select>
+        <label>Username</label><input id="adminNewUsername" autocomplete="off" placeholder="Buat username">
+        <label>Password (minimal 8 karakter)</label><input id="adminNewPassword" type="password" placeholder="Buat password">
+        <label>Konfirmasi Password</label><input id="adminNewConfirm" type="password" placeholder="Ulangi password">
+        <label>PIN Pemulihan (6 angka)</label><input id="adminNewPin" inputmode="numeric" maxlength="6" placeholder="PIN pemulihan">
+        <button onclick="adminCreateAccount()">BUAT AKUN</button>
+        <p id="adminAccountMessage" role="status"></p>
+        <h4>DAFTAR AKUN</h4><div id="adminAccountList"></div>
+        <button class="secondary" onclick="backToDashboard()">KEMBALI KE DASHBOARD</button>
+    </section>
 
     <section id="ocrPage" class="card hidden">
         <h3>FOTO SURAT JALAN - UJI OCR</h3>
@@ -669,6 +684,10 @@ function login() {
     }
 
     const user = users.find(x => x.username === u && x.password === p);
+    if (user && user.active === false) {
+        document.getElementById("loginMessage").innerText = "Akun ini dinonaktifkan. Hubungi Administrator.";
+        return;
+    }
     if (user) {
         currentUser = user;
         document.getElementById("loginPage").classList.add("hidden");
@@ -676,12 +695,58 @@ function login() {
         document.getElementById("userInfo").innerText = user.username + " | " + user.role;
         const manageButton = document.getElementById("dataManagementButton");
         if (manageButton) manageButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
+        const accountButton = document.getElementById("accountManagementButton");
+        if (accountButton) accountButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
         updateDashboard();
     } else {
         document.getElementById("loginMessage").innerText = "Username atau password salah!";
     }
 }
 
+function showAdminAccounts() {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Hanya Administrator yang dapat mengelola akun.");return;}
+    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>el.classList.add("hidden"));
+    document.getElementById("adminAccountsPage").classList.remove("hidden");
+    renderAdminAccountList();
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function backToDashboard() {
+    document.getElementById("adminAccountsPage").classList.add("hidden");
+    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>el.classList.remove("hidden"));
+    document.getElementById("adminAccountsPage").classList.add("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function adminCreateAccount() {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
+    const role=document.getElementById("adminNewRole").value;
+    const username=document.getElementById("adminNewUsername").value.trim();
+    const password=document.getElementById("adminNewPassword").value;
+    const confirmPassword=document.getElementById("adminNewConfirm").value;
+    const pin=document.getElementById("adminNewPin").value.trim();
+    const msg=document.getElementById("adminAccountMessage");
+    const users=getDwdsUsers();
+    if(!username||!password||!confirmPassword||!pin){msg.innerText="Lengkapi seluruh kolom.";return;}
+    if(users.some(x=>String(x.username).toLowerCase()===username.toLowerCase())){msg.innerText="Username sudah digunakan.";return;}
+    if(password.length<8){msg.innerText="Password minimal 8 karakter.";return;}
+    if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
+    if(!/^\\d{6}$/.test(pin)){msg.innerText="PIN harus tepat 6 angka.";return;}
+    users.push({username,password,role,recoveryPin:pin,active:true,createdAt:new Date().toISOString()});
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    ["adminNewUsername","adminNewPassword","adminNewConfirm","adminNewPin"].forEach(id=>document.getElementById(id).value="");
+    msg.innerText="Akun "+role+" berhasil dibuat pada perangkat ini.";
+    renderAdminAccountList();
+}
+function renderAdminAccountList() {
+    const box=document.getElementById("adminAccountList"); if(!box)return;
+    const users=getDwdsUsers();
+    box.innerHTML=users.map((u,i)=>'<div class="card" style="padding:10px;margin:8px 0"><b>'+escapeHtml(String(u.username))+'</b><br>'+escapeHtml(String(u.role||"Pengguna"))+' · '+(u.active===false?"NONAKTIF":"AKTIF")+(String(u.username).toLowerCase()==="admin"?'':'<br><button class="secondary" onclick="toggleAccountStatus('+i+')">'+(u.active===false?"AKTIFKAN":"NONAKTIFKAN")+'</button>')+'</div>').join("");
+}
+function toggleAccountStatus(index) {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
+    const users=getDwdsUsers(); if(!users[index]||String(users[index].username).toLowerCase()==="admin")return;
+    users[index].active=users[index].active===false;
+    localStorage.setItem("dwds_users",JSON.stringify(users)); renderAdminAccountList();
+}
 function getDwdsUsers() {
     let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
     if (!users) {
