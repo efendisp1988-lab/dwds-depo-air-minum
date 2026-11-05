@@ -714,13 +714,21 @@ async function startCamera() {
     }
     try {
         cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
+            video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            },
             audio: false
         });
         video.srcObject = cameraStream;
         video.style.display = "block";
         await video.play();
-        message.innerText = "Arahkan kamera ke QR Code surat jalan.";
+        const track = cameraStream.getVideoTracks()[0];
+        if (track && track.applyConstraints) {
+            try { await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } catch (e) {}
+        }
+        message.innerText = "Kamera aktif. Arahkan QR memenuhi area kamera, jaga jarak sekitar 15-30 cm, dan hindari pantulan cahaya.";
         scanCameraFrame();
     } catch (error) {
         message.innerText = "Kamera tidak dapat dibuka. Izinkan akses kamera atau gunakan gambar QR dari galeri.";
@@ -739,7 +747,7 @@ function scanCameraFrame() {
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(image.data, image.width, image.height, { inversionAttempts: "dontInvert" });
+    const code = jsQR(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" });
     if (code && code.data && code.data !== lastScanText) {
         lastScanText = code.data;
         processScannedQr(code.data);
