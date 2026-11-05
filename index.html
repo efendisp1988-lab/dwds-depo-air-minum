@@ -975,7 +975,7 @@ function printReportPdf(){
   <p>Periode: ${esc(q.start)} s.d. ${esc(q.end)}</p>
   <p>Total Surat: ${q.data.length} | Total Penerima: ${rows.length} | Total Galon: ${total}</p>
   <table><thead><tr><th>No</th>${keys.map(key => "<th>" + esc(key) + "</th>").join("")}</tr></thead><tbody>${body}</tbody></table>
-  <div class="closing"><h3>HALAMAN PENUTUP</h3><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p>
+  <div class="closing"><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p>
   <div class="signs">${sign("Petugas Depo",p.signDepoName,p.signDepoTitle)}${sign("Mengetahui, KTU",p.signKtuName,p.signKtuTitle)}${sign("Menyetujui, Manager",p.signManagerName,p.signManagerTitle)}</div></div>
   <p style="text-align:center;margin-top:30px">Dokumen dibuat melalui DWDS - Depo Water Distribution System</p>
   <button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>`;
