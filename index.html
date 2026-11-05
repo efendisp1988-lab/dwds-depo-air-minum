@@ -365,6 +365,12 @@ function saveDeliveryLetter() {
     updateDashboard();
 }
 
+function displayDate(value) {
+    if (!value) return "-";
+    const parts = String(value).slice(0, 10).split("-");
+    return parts.length === 3 ? parts[2] + "-" + parts[1] + "-" + parts[0] : value;
+}
+
 function showRecap() {
     const transactions = getTransactions();
     const box = document.getElementById("recapList");
@@ -372,15 +378,25 @@ function showRecap() {
     if (transactions.length === 0) {
         box.innerHTML = "<p>Belum ada transaksi.</p>";
     } else {
-        box.innerHTML = transactions.slice().reverse().map(t =>
-            "<div style='padding:12px 0;border-bottom:1px solid #eee'>" +
-            "<b>" + escapeHtml(t.nomor) + "</b><br>" +
-            "Tanggal: " + escapeHtml(t.tanggal) + "<br>" +
-            "Penerima: " + t.jumlah + " | Galon: " + t.galon + "<br>" +
-            "Status: " + (t.scannedAt ? "SUDAH DIPROSES" : "MENUNGGU SCAN") +
-            "<button style='margin-top:10px' data-qr-id='" + escapeHtml(t.id) + "'>BUAT QR CODE</button>" +
-            "</div>"
-        ).join("");
+        box.innerHTML = transactions.slice().reverse().map(t => {
+            const records = t.recipientRecords || (t.recipients || []).map(nama => ({ nama, unit: "", divisi: "", galon: 1 }));
+            const detailRows = records.map((r, i) =>
+                "<tr><td style='padding:7px;border-bottom:1px solid #eee'>" + (i + 1) +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.nama) +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.unit || "-") +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.divisi || "-") +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee;text-align:center'>" + (r.galon || 1) + "</td></tr>"
+            ).join("");
+            return "<div style='padding:12px 0;border-bottom:1px solid #eee'>" +
+                "<b>" + escapeHtml(t.nomor) + "</b><br>" +
+                "Tanggal Surat: " + displayDate(t.tanggal) + "<br>" +
+                "Tanggal Distribusi: " + (t.scannedAt ? displayDate(t.scannedAt) + " " + new Date(t.scannedAt).toLocaleTimeString("id-ID") : "Belum didistribusikan") + "<br>" +
+                "Penerima: " + t.jumlah + " | Galon: " + t.galon + "<br>" +
+                "Status: " + (t.scannedAt ? "SUDAH DIPROSES" : "MENUNGGU SCAN") +
+                "<details style='margin-top:10px'><summary style='cursor:pointer;font-weight:bold'>LIHAT RINCIAN PENERIMA (" + records.length + ")</summary>" +
+                "<div style='overflow-x:auto;margin-top:8px'><table style='width:100%;border-collapse:collapse;font-size:12px'><thead><tr><th style='padding:7px'>No</th><th style='padding:7px'>Nama</th><th style='padding:7px'>Unit</th><th style='padding:7px'>Divisi</th><th style='padding:7px'>Galon</th></tr></thead><tbody>" + detailRows + "</tbody></table></div></details>" +
+                "<button style='margin-top:10px' data-qr-id='" + escapeHtml(t.id) + "'>BUAT QR CODE</button></div>";
+        }).join("");
         box.querySelectorAll("[data-qr-id]").forEach(button => {
             button.addEventListener("click", () => generateQr(button.getAttribute("data-qr-id")));
         });
