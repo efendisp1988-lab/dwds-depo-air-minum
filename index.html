@@ -218,6 +218,8 @@ footer {
         <p>Lengkapi profil perusahaan dan tiga pejabat penandatangan. Data tersimpan pada perangkat ini.</p>
         <h4>PROFIL PERUSAHAAN</h4>
         <label>Nama Perusahaan</label><input id="companyName" placeholder="Nama perusahaan">
+        <label>Region</label><input id="companyRegion" placeholder="Contoh: Region Kubar 1">
+        <label>Nama Unit</label><input id="companyUnit" placeholder="Nama unit/depo">
         <label>Alamat Perusahaan</label><textarea id="companyAddress" rows="2" placeholder="Alamat perusahaan"></textarea>
         <label>Logo Perusahaan (PNG/JPG)</label><input id="companyLogoFile" type="file" accept="image/png,image/jpeg">
         <img id="companyLogoPreview" class="hidden" style="max-width:130px;max-height:100px;object-fit:contain;margin-top:10px">
@@ -812,7 +814,7 @@ function showReportPage(){
  document.getElementById("reportPage").classList.remove("hidden");
  ["inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
  const p=getReportProfile();
- ["companyName","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{if(p[id]!==undefined)document.getElementById(id).value=p[id];});
+ ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{if(p[id]!==undefined)document.getElementById(id).value=p[id];});
  const defaults={signDepoTitle:"Petugas Depo",signKtuTitle:"KTU",signManagerTitle:"Manager"};
  Object.keys(defaults).forEach(id=>{if(!document.getElementById(id).value)document.getElementById(id).value=defaults[id];});
  const preview=document.getElementById("companyLogoPreview");if(p.logo){preview.src=p.logo;preview.classList.remove("hidden");}
@@ -836,7 +838,7 @@ document.getElementById("companyLogoFile").addEventListener("change",function(){
 });
 function saveReportProfile(){
  const p=getReportProfile();
- ["companyName","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>p[id]=document.getElementById(id).value.trim());
+ ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>p[id]=document.getElementById(id).value.trim());
  if(window.pendingCompanyLogo)p.logo=window.pendingCompanyLogo;
  try{localStorage.setItem("dwds_report_profile",JSON.stringify(p));window.pendingCompanyLogo=null;document.getElementById("reportMessage").innerText="Profil, logo, dan data penandatangan berhasil disimpan di perangkat ini.";}
  catch(e){document.getElementById("reportMessage").innerText="Gagal menyimpan. Coba gunakan logo dengan ukuran lebih kecil.";}
@@ -860,7 +862,7 @@ function exportReportExcel(){
   saveReportProfile();const q=getFilteredReportData();if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
   const p=getReportProfile(),rows=getReportRows(q.data),wb=XLSX.utils.book_new();
   const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]),0);
-  const summary=[["LAPORAN DISTRIBUSI AIR DEPO"],[p.companyName||""],[p.companyAddress||""],["Periode",q.start+" s.d. "+q.end],[],["Total Surat",q.data.length],["Total Penerima",rows.length],["Total Galon",total],[],Object.keys(rows[0])];
+  const summary=[["LAPORAN DISTRIBUSI AIR DEPO"],[p.companyName||""],["Region",p.companyRegion||""],["Nama Unit",p.companyUnit||""],[p.companyAddress||""],["Periode",q.start+" s.d. "+q.end],[],["Total Surat",q.data.length],["Total Penerima",rows.length],["Total Galon",total],[],Object.keys(rows[0])];
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary.concat(rows.map(r=>Object.values(r)))),"Laporan Distribusi");
   const units={};rows.forEach(r=>{const k=r.Unit||"Tidak diisi";units[k]=(units[k]||0)+Number(r["Jumlah Galon"]);});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Unit","Total Galon"],...Object.entries(units)]),"Rekap Unit");
