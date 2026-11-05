@@ -705,15 +705,17 @@ function login() {
 
 function showAdminAccounts() {
     if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Hanya Administrator yang dapat mengelola akun.");return;}
-    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>el.classList.add("hidden"));
+    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>{el.dataset.wasHidden=el.classList.contains("hidden")?"1":"0";el.classList.add("hidden");});
     document.getElementById("adminAccountsPage").classList.remove("hidden");
     renderAdminAccountList();
     window.scrollTo({top:0,behavior:"smooth"});
 }
 function backToDashboard() {
     document.getElementById("adminAccountsPage").classList.add("hidden");
-    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>el.classList.remove("hidden"));
-    document.getElementById("adminAccountsPage").classList.add("hidden");
+    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>{
+        if(el.dataset.wasHidden==="1")el.classList.add("hidden");else el.classList.remove("hidden");
+        delete el.dataset.wasHidden;
+    });
     window.scrollTo({top:0,behavior:"smooth"});
 }
 function adminCreateAccount() {
