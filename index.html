@@ -581,7 +581,9 @@ async function generateQr(id) {
   const encoded=await encodeLetterPayload(item);
   document.getElementById("qrcode").innerHTML="";
   new QRCode(document.getElementById("qrcode"),{text:encoded,width:420,height:420,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.L});
-  document.getElementById("qrPayloadStatus").innerText="QR memuat data surat jalan dan "+(item.recipientRecords||item.recipients||[]).length+" penerima. Uji scan sebelum dicetak.";
+  const qrRecords=item.recipientRecords||item.recipients||[];
+  const hasAllIds=qrRecords.length>0&&qrRecords.every(r=>r&&r.nik);
+  document.getElementById("qrPayloadStatus").innerText="QR memuat data surat jalan, "+qrRecords.length+" penerima, dan "+(hasAllIds?"NIK/NIP setiap penerima.":"data identitas dari transaksi lama.")+" Uji scan sebelum dicetak.";
  }catch(err){
   document.getElementById("qrcode").innerHTML="";
   document.getElementById("qrPayloadStatus").innerText="Data terlalu besar untuk satu QR atau gagal dibuat. Coba kurangi ukuran data/pecah surat jalan. Detail: "+(err&&err.message?err.message:String(err));
@@ -790,8 +792,11 @@ async function processScannedQr(text) {
  try{
   const p=await decodeLetterPayload(text);
   if(p.v!==2||!p.id||!p.nomor||!Array.isArray(p.recipients)||!p.recipients.length)throw new Error("Isi QR tidak lengkap.");
-  const records=p.recipients.map(r=>({nama:String(r.nama||"").trim(),unit:String(r.unit||""),divisi:String(r.divisi||""),galon:Math.max(0,Number(r.galon)||0)}));
+  const records=p.recipients.map(r=>({nik:String(r.nik||r.nip||"").trim(),nama:String(r.nama||"").trim(),unit:String(r.unit||""),divisi:String(r.divisi||""),galon:Math.max(0,Number(r.galon)||0)}));
   if(records.some(r=>!r.nama||r.galon<=0))throw new Error("Ada nama atau jumlah galon yang tidak valid.");
+  const ids=records.map(r=>r.nik.replace(/\\s+/g,"").toLowerCase()).filter(Boolean);
+  if(new Set(ids).size!==ids.length)throw new Error("NIK/NIP ganda ditemukan di dalam QR. Data ditolak.");
+  if(ids.length>0&&ids.length!==records.length)throw new Error("Sebagian data QR tidak memiliki NIK/NIP. Data ditolak agar identitas karyawan tidak hilang.");
   const transactions=getTransactions();
   if(transactions.some(t=>t.sourceQrId===p.id||String(t.nomor).toLowerCase()===String(p.nomor).toLowerCase())){
    message.innerText="Surat "+p.nomor+" sudah pernah diimpor/diproses pada perangkat ini. Duplikasi dicegah.";return;
