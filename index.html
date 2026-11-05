@@ -193,7 +193,7 @@ footer {
 
     <section id="inputPage" class="card hidden">
         <h3>INPUT SURAT JALAN</h3>
-        <p>Masukkan satu nomor surat jalan dan daftar nama penerima. Satu nama dihitung satu galon.</p>
+        <p>Masukkan nomor surat jalan, lalu import Excel berisi NIK/NIP dan Nama penerima. NIK/NIP menjadi identitas unik setiap karyawan.</p>
         <label for="suratNomor">Nomor Surat Jalan</label>
         <input id="suratNomor" type="text" placeholder="Contoh: SJ/DEPO/001/2026">
         <label for="suratTanggal">Tanggal Surat</label>
@@ -202,7 +202,7 @@ footer {
         <textarea id="recipientNames" rows="8" placeholder="Satu nama per baris&#10;Contoh:&#10;Budi Santoso&#10;Andi Saputra&#10;Siti Aminah"></textarea>
         <div style="margin-top:14px;padding:14px;background:#f1f5f2;border-radius:9px">
             <b>IMPORT DAFTAR PENERIMA DARI FILE</b>
-            <p style="font-size:13px">Pilih file Word (.docx), PDF, Excel (.xlsx/.xls), CSV, atau TXT. Sistem akan mengambil teks/nama untuk diperiksa sebelum disimpan.</p>
+            <p style="font-size:13px">Gunakan Excel (.xlsx/.xls) dengan kolom wajib NIK/NIP dan Nama. Kolom Unit, Divisi, dan Jumlah Galon bersifat opsional.</p>
             <input id="recipientFile" type="file" accept=".docx,.pdf,.xlsx,.xls,.csv,.txt">
             <p id="importMessage" style="font-size:13px"></p>
         </div>
