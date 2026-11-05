@@ -162,6 +162,7 @@ footer {
         <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
         <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
+        <button class="secondary" onclick="showReportPage()">LAPORAN & PROFIL PERUSAHAAN</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
 
@@ -210,6 +211,27 @@ footer {
             <button class="secondary" onclick="closeQr()">TUTUP QR</button>
         </div>
         <button class="secondary" onclick="hideRecap()">KEMBALI</button>
+    </section>
+
+    <section id="reportPage" class="card hidden">
+        <h3>LAPORAN & PROFIL PERUSAHAAN</h3>
+        <p>Lengkapi profil perusahaan dan tiga pejabat penandatangan. Data tersimpan pada perangkat ini.</p>
+        <h4>PROFIL PERUSAHAAN</h4>
+        <label>Nama Perusahaan</label><input id="companyName" placeholder="Nama perusahaan">
+        <label>Alamat Perusahaan</label><textarea id="companyAddress" rows="2" placeholder="Alamat perusahaan"></textarea>
+        <label>Logo Perusahaan (PNG/JPG)</label><input id="companyLogoFile" type="file" accept="image/png,image/jpeg">
+        <img id="companyLogoPreview" class="hidden" style="max-width:130px;max-height:100px;object-fit:contain;margin-top:10px">
+        <button onclick="saveReportProfile()">SIMPAN PROFIL & PENANDATANGAN</button>
+        <hr><h4>PENANDATANGAN LAPORAN</h4>
+        <p>Nama dan jabatan akan ditampilkan pada halaman penutup laporan PDF.</p>
+        <b>Petugas Depo</b><label>Nama</label><input id="signDepoName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signDepoTitle" value="Petugas Depo">
+        <b>KTU</b><label>Nama</label><input id="signKtuName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signKtuTitle" value="KTU">
+        <b>Manager</b><label>Nama</label><input id="signManagerName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signManagerTitle" value="Manager">
+        <hr><h4>PERIODE LAPORAN</h4>
+        <label>Tanggal Mulai</label><input id="reportStart" type="date"><label>Tanggal Akhir</label><input id="reportEnd" type="date">
+        <button onclick="exportReportExcel()">DOWNLOAD LAPORAN EXCEL</button>
+        <button class="secondary" onclick="printReportPdf()">CETAK / SIMPAN LAPORAN PDF</button>
+        <p id="reportMessage"></p><button class="secondary" onclick="hideReportPage()">KEMBALI KE DASHBOARD</button>
     </section>
 
     <div class="card">
