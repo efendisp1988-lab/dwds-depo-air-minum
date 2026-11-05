@@ -230,8 +230,9 @@ footer {
         <div id="qrDisplay" class="hidden" style="margin-top:18px;padding:16px;border:1px solid #ddd;border-radius:10px;text-align:center">
             <h3>QR CODE SURAT JALAN</h3>
             <p id="qrLetterInfo"></p>
+            <p id="qrPayloadStatus" style="font-size:13px"></p>
             <div id="qrcode" style="display:flex;justify-content:center;margin:15px auto;background:white;padding:10px"></div>
-            <p style="font-size:13px">QR ini berisi kode referensi surat jalan. Daftar penerima tetap tersimpan di perangkat ini.</p>
+            <p style="font-size:13px">QR ini membawa data surat jalan agar dapat dipindai di HP lain tanpa database pusat. Cetak setelah QR berhasil diuji.</p>
             <button onclick="downloadQr()">DOWNLOAD QR CODE</button>
             <button class="secondary" onclick="closeQr()">TUTUP QR</button>
         </div>
@@ -557,33 +558,37 @@ function hideRecap() {
     closeQr();
 }
 
-function generateQr(id) {
-    const transactions = getTransactions();
-    const item = transactions.find(t => t.id === id);
-    if (!item) {
-        alert("Data surat jalan tidak ditemukan di perangkat ini.");
-        return;
-    }
-    if (typeof QRCode === "undefined") {
-        alert("Komponen QR belum berhasil dimuat. Muat ulang aplikasi dan coba lagi.");
-        return;
-    }
-
-    activeQr = item;
-    document.getElementById("qrLetterInfo").innerText =
-        item.nomor + " | " + item.tanggal + " | " + item.jumlah + " penerima";
-    document.getElementById("qrcode").innerHTML = "";
-    document.getElementById("qrDisplay").classList.remove("hidden");
-
-    // QR hanya membawa ID referensi agar tetap ringkas meskipun daftar berisi banyak penerima.
-    new QRCode(document.getElementById("qrcode"), {
-        text: "DWDS1:" + item.id,
-        width: 240,
-        height: 240,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M
-    });
+async function encodeLetterPayload(item){
+ const payload={v:2,id:item.id,nomor:item.nomor,tanggal:item.tanggal,unit:item.unit||"",divisi:item.divisi||"",recipients:item.recipientRecords|| (item.recipients||[]).map(nama=>({nama,unit:"",divisi:"",galon:1})),jumlah:item.jumlah||0,galon:item.galon||0,createdAt:item.createdAt||new Date().toISOString()};
+ const raw=new TextEncoder().encode(JSON.stringify(payload));
+ if(typeof CompressionStream!=="undefined"){
+  const stream=new Blob([raw]).stream().pipeThrough(new CompressionStream("gzip"));
+  const compressed=new Uint8Array(await new Response(stream).arrayBuffer());
+  let binary="";compressed.forEach(b=>binary+=String.fromCharCode(b));
+  return "DWDS2:"+btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+ }
+ let binary="";raw.forEach(b=>binary+=String.fromCharCode(b));
+ return "DWDS2U:"+btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+async function generateQr(id) {
+ const transactions=getTransactions();
+ const item=transactions.find(t=>t.id===id);
+ if(!item){alert("Data surat jalan tidak ditemukan.");return;}
+ if(typeof QRCode==="undefined"){alert("Komponen QR belum berhasil dimuat. Muat ulang aplikasi.");return;}
+ activeQr=item;
+ document.getElementById("qrLetterInfo").innerText=item.nomor+" | "+item.tanggal+" | "+item.jumlah+" penerima | "+item.galon+" galon";
+ document.getElementById("qrcode").innerHTML="";
+ document.getElementById("qrDisplay").classList.remove("hidden");
+ document.getElementById("qrPayloadStatus").innerText="Menyiapkan QR berisi data surat jalan...";
+ try{
+  const encoded=await encodeLetterPayload(item);
+  document.getElementById("qrcode").innerHTML="";
+  new QRCode(document.getElementById("qrcode"),{text:encoded,width:420,height:420,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.L});
+  document.getElementById("qrPayloadStatus").innerText="QR memuat data surat jalan dan "+(item.recipientRecords||item.recipients||[]).length+" penerima. Uji scan sebelum dicetak.";
+ }catch(err){
+  document.getElementById("qrcode").innerHTML="";
+  document.getElementById("qrPayloadStatus").innerText="Data terlalu besar untuk satu QR atau gagal dibuat. Coba kurangi ukuran data/pecah surat jalan. Detail: "+(err&&err.message?err.message:String(err));
+ }
 }
 
 function closeQr() {
@@ -758,33 +763,48 @@ function stopCamera() {
     }
 }
 
-function processScannedQr(text) {
-    const message = document.getElementById("scanMessage");
-    if (!text.startsWith("DWDS1:")) {
-        message.innerText = "QR tidak dikenali sebagai QR surat jalan DWDS.";
-        return;
-    }
-    const id = text.substring(6);
-    const transactions = getTransactions();
-    const item = transactions.find(t => t.id === id);
-    if (!item) {
-        message.innerText = "Data surat jalan tidak ditemukan di perangkat ini. QR harus dipindai pada HP yang menyimpan data surat tersebut.";
-        return;
-    }
-    if (item.scannedAt) {
-        message.innerText = "QR ini sudah pernah diproses pada " + new Date(item.scannedAt).toLocaleString("id-ID") + ". Duplikasi dicegah.";
-        return;
-    }
-    if (localStorage.getItem("dwds_status") !== "OPEN") {
-        message.innerText = "Operasional sudah ditutup. QR tidak dapat diproses.";
-        return;
-    }
-
-    item.scannedAt = new Date().toISOString();
-    item.scannedBy = currentUser ? currentUser.username : "unknown";
-    localStorage.setItem("dwds_transactions", JSON.stringify(transactions));
-    message.innerText = "BERHASIL! Surat " + item.nomor + " diproses. " + item.jumlah + " penerima dan " + item.galon + " galon tercatat.";
-    updateDashboard();
+async function decodeLetterPayload(text){
+ let encoded=text.substring(6).replace(/-/g,"+").replace(/_/g,"/");
+ while(encoded.length%4)encoded+="=";
+ const binary=atob(encoded),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+ let raw;
+ if(text.startsWith("DWDS2:")){
+  if(typeof DecompressionStream==="undefined")throw new Error("Browser belum mendukung pembacaan QR terkompresi. Gunakan Chrome terbaru.");
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  raw=new Uint8Array(await new Response(stream).arrayBuffer());
+ }else raw=bytes;
+ return JSON.parse(new TextDecoder().decode(raw));
+}
+async function processScannedQr(text) {
+ const message=document.getElementById("scanMessage");
+ if(text.startsWith("DWDS1:")){
+  const id=text.substring(6),transactions=getTransactions(),item=transactions.find(t=>t.id===id);
+  if(!item){message.innerText="QR lama ini hanya berisi ID dan data tidak ada di HP ini. Minta QR versi data penuh dari penerbit.";return;}
+  if(item.scannedAt){message.innerText="QR ini sudah pernah diproses pada "+new Date(item.scannedAt).toLocaleString("id-ID")+". Duplikasi dicegah.";return;}
+  if(localStorage.getItem("dwds_status")!=="OPEN"){message.innerText="Operasional belum dibuka. Buka operasional sebelum memproses QR.";return;}
+  item.scannedAt=new Date().toISOString();item.scannedBy=currentUser?currentUser.username:"unknown";
+  localStorage.setItem("dwds_transactions",JSON.stringify(transactions));
+  message.innerText="BERHASIL! Surat "+item.nomor+" diproses. "+item.jumlah+" penerima dan "+item.galon+" galon tercatat.";
+  updateDashboard();return;
+ }
+ if(!text.startsWith("DWDS2:")&&!text.startsWith("DWDS2U:")){message.innerText="QR tidak dikenali sebagai QR surat jalan DWDS.";return;}
+ if(localStorage.getItem("dwds_status")!=="OPEN"){message.innerText="Operasional belum dibuka. Buka operasional sebelum memproses QR.";return;}
+ try{
+  const p=await decodeLetterPayload(text);
+  if(p.v!==2||!p.id||!p.nomor||!Array.isArray(p.recipients)||!p.recipients.length)throw new Error("Isi QR tidak lengkap.");
+  const records=p.recipients.map(r=>({nama:String(r.nama||"").trim(),unit:String(r.unit||""),divisi:String(r.divisi||""),galon:Math.max(0,Number(r.galon)||0)}));
+  if(records.some(r=>!r.nama||r.galon<=0))throw new Error("Ada nama atau jumlah galon yang tidak valid.");
+  const transactions=getTransactions();
+  if(transactions.some(t=>t.sourceQrId===p.id||String(t.nomor).toLowerCase()===String(p.nomor).toLowerCase())){
+   message.innerText="Surat "+p.nomor+" sudah pernah diimpor/diproses pada perangkat ini. Duplikasi dicegah.";return;
+  }
+  const now=new Date().toISOString(),totalGalon=records.reduce((sum,r)=>sum+r.galon,0);
+  const item={id:"DWDS-QR-"+p.id,sourceQrId:p.id,nomor:p.nomor,tanggal:p.tanggal||localDateString(),recipients:records.map(r=>r.nama),recipientRecords:records,jumlah:records.length,galon:totalGalon,createdAt:p.createdAt||now,createdBy:"Penerbit QR",scannedAt:now,scannedBy:currentUser?currentUser.username:"unknown",importedFromQr:true};
+  transactions.push(item);
+  localStorage.setItem("dwds_transactions",JSON.stringify(transactions));
+  message.innerText="BERHASIL! Surat "+item.nomor+" diimpor dari QR. "+item.jumlah+" penerima dan "+item.galon+" galon tercatat.";
+  updateDashboard();
+ }catch(err){message.innerText="QR terbaca tetapi datanya gagal diproses: "+(err&&err.message?err.message:String(err));}
 }
 
 function scanImageFile(file) {
