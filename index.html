@@ -249,7 +249,7 @@ footer {
         <p id="backupStatus" style="font-size:13px"></p>
         <hr>
         <h4>HAPUS LAPORAN TERTENTU</h4>
-        <p>Pilih satu atau beberapa nomor surat jalan. Penghapusan hanya dilakukan setelah backup diunduh dan dikonfirmasi.</p>
+        <p>Pilih satu atau beberapa nomor surat jalan untuk langsung dihapus. Backup tersedia sebagai pilihan, tetapi tidak wajib untuk menghapus laporan tertentu.</p>
         <div id="manageTransactionList"></div>
         <label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input id="backupConfirmed" type="checkbox" style="width:auto"> Saya sudah mengunduh dan menyimpan backup terbaru.</label>
         <button class="danger" onclick="deleteSelectedReports()">HAPUS LAPORAN TERPILIH</button>
@@ -453,13 +453,11 @@ function downloadDataBackup() {
 function deleteSelectedReports() {
     if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
     if(localStorage.getItem("dwds_status")==="OPEN"){alert("Tutup operasional terlebih dahulu sebelum menghapus laporan.");return;}
-    if(!document.getElementById("backupConfirmed").checked){alert("Unduh dan simpan backup terbaru, lalu centang konfirmasi backup.");return;}
     const selected=[...document.querySelectorAll(".manage-report-check:checked")].map(x=>x.value);
     if(!selected.length){alert("Pilih minimal satu laporan.");return;}
     if(!confirm("Hapus "+selected.length+" laporan terpilih beserta data transaksi sumbernya dari perangkat ini? Tindakan ini tidak dapat dibatalkan."))return;
     const keep=getTransactions().filter(t=>!selected.includes(String(t.id||"")));
     localStorage.setItem("dwds_transactions",JSON.stringify(keep));
-    document.getElementById("backupConfirmed").checked=false;
     document.getElementById("manageMessage").innerText="Berhasil menghapus "+selected.length+" laporan. Profil dan akun tetap aman.";
     renderDataManagement();updateDashboard();
 }
