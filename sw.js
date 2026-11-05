@@ -1,5 +1,5 @@
-const CACHE_NAME = "dwds-shell-v1";
-const FILES = ["./", "./index.html", "./manifest.json", "./qrcode.min.js", "./jsQR.js", "./xlsx.full.min.js", "./pdf.min.js"];
+const CACHE_NAME = "dwds-shell-v2";
+const FILES = ["./", "./index.html", "./manifest.json", "./qrcode.min.js", "./jsQR.js", "./xlsx.full.min.js", "./pdf.min.js", "./icon.svg"];
 self.addEventListener("install", function(event) {
   event.waitUntil(caches.open(CACHE_NAME).then(function(cache) { return cache.addAll(FILES); }).then(function() { return self.skipWaiting(); }));
 });
