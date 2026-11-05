@@ -166,6 +166,7 @@ footer {
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
         <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
         <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
+        <button class="danger hidden" id="dataManagementButton" onclick="showDataManagement()">KELOLA / HAPUS LAPORAN (ADMIN)</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
     <div class="card">
@@ -237,6 +238,27 @@ footer {
             <button class="secondary" onclick="closeQr()">TUTUP QR</button>
         </div>
         <button class="secondary" onclick="hideRecap()">KEMBALI</button>
+    </section>
+
+    <section id="dataManagementPage" class="card hidden">
+        <h3>PENGELOLAAN DATA & LAPORAN</h3>
+        <p>Hanya Administrator. Hapus laporan berarti menghapus transaksi sumber dari perangkat ini. Profil perusahaan dan akun pengguna tidak ikut terhapus.</p>
+        <div class="stat"><span>Total surat tersimpan</span><b id="manageTotalLetters">0</b></div>
+        <div class="stat"><span>Total checklist harian</span><b id="manageTotalChecks">0</b></div>
+        <button onclick="downloadDataBackup()">UNDUH BACKUP DATA (JSON)</button>
+        <p id="backupStatus" style="font-size:13px"></p>
+        <hr>
+        <h4>HAPUS LAPORAN TERTENTU</h4>
+        <p>Pilih satu atau beberapa nomor surat jalan. Penghapusan hanya dilakukan setelah backup diunduh dan dikonfirmasi.</p>
+        <div id="manageTransactionList"></div>
+        <label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input id="backupConfirmed" type="checkbox" style="width:auto"> Saya sudah mengunduh dan menyimpan backup terbaru.</label>
+        <button class="danger" onclick="deleteSelectedReports()">HAPUS LAPORAN TERPILIH</button>
+        <hr>
+        <h4>RESET DATA OPERASIONAL</h4>
+        <p>Menghapus seluruh transaksi dan checklist harian di perangkat ini. Akun pengguna, profil perusahaan, logo, dan pengaturan tetap dipertahankan.</p>
+        <button class="danger" onclick="resetOperationalData()">RESET SELURUH DATA OPERASIONAL</button>
+        <p id="manageMessage" style="font-size:13px"></p>
+        <button class="secondary" onclick="hideDataManagement()">KEMBALI KE DASHBOARD</button>
     </section>
 
     <section id="companyProfilePage" class="card hidden">
@@ -393,6 +415,67 @@ async function copyOcrResult(){
 function getTransactions() {
     return JSON.parse(localStorage.getItem("dwds_transactions") || "[]");
 }
+function showDataManagement() {
+    if (!currentUser || String(currentUser.role || "").toLowerCase() !== "administrator") {
+        alert("Akses ditolak. Modul ini hanya untuk Administrator.");
+        return;
+    }
+    document.getElementById("dataManagementPage").classList.remove("hidden");
+    renderDataManagement();
+    window.scrollTo({top:document.getElementById("dataManagementPage").offsetTop,behavior:"smooth"});
+}
+function hideDataManagement() {
+    document.getElementById("dataManagementPage").classList.add("hidden");
+}
+function renderDataManagement() {
+    const tx=getTransactions();
+    const checks=Object.keys(localStorage).filter(k=>k.startsWith("dwds_daily_checklist_"));
+    document.getElementById("manageTotalLetters").innerText=tx.length;
+    document.getElementById("manageTotalChecks").innerText=checks.length;
+    const box=document.getElementById("manageTransactionList");
+    if(!tx.length){box.innerHTML="<p>Tidak ada laporan tersimpan.</p>";return;}
+    box.innerHTML=tx.slice().reverse().map(t=>{
+        const id=escapeHtml(t.id||"");
+        return "<label style='display:flex;gap:8px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid #eee'><input type='checkbox' class='manage-report-check' value='"+id+"' style='width:auto;margin-top:3px'><span><b>"+escapeHtml(t.nomor||"Tanpa nomor")+"</b><br><small>Tanggal: "+displayDate(t.tanggal)+" | Penerima: "+Number(t.jumlah||0)+" | Galon: "+Number(t.galon||0)+" | "+(t.scannedAt?"Selesai":"Belum diproses")+"</small></span></label>";
+    }).join("");
+}
+function downloadDataBackup() {
+    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    const checklist={};
+    Object.keys(localStorage).filter(k=>k.startsWith("dwds_daily_checklist_")).forEach(k=>checklist[k]=localStorage.getItem(k));
+    const backup={app:"DWDS",type:"backup-before-delete",createdAt:new Date().toISOString(),transactions:getTransactions(),checklists:checklist};
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="DWDS-BACKUP-"+localDateString()+".json";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    document.getElementById("backupStatus").innerText="File backup disiapkan. Pastikan file JSON benar-benar tersimpan sebelum mencentang konfirmasi.";
+}
+function deleteSelectedReports() {
+    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    if(localStorage.getItem("dwds_status")==="OPEN"){alert("Tutup operasional terlebih dahulu sebelum menghapus laporan.");return;}
+    if(!document.getElementById("backupConfirmed").checked){alert("Unduh dan simpan backup terbaru, lalu centang konfirmasi backup.");return;}
+    const selected=[...document.querySelectorAll(".manage-report-check:checked")].map(x=>x.value);
+    if(!selected.length){alert("Pilih minimal satu laporan.");return;}
+    if(!confirm("Hapus "+selected.length+" laporan terpilih beserta data transaksi sumbernya dari perangkat ini? Tindakan ini tidak dapat dibatalkan."))return;
+    const keep=getTransactions().filter(t=>!selected.includes(String(t.id||"")));
+    localStorage.setItem("dwds_transactions",JSON.stringify(keep));
+    document.getElementById("backupConfirmed").checked=false;
+    document.getElementById("manageMessage").innerText="Berhasil menghapus "+selected.length+" laporan. Profil dan akun tetap aman.";
+    renderDataManagement();updateDashboard();
+}
+function resetOperationalData() {
+    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    if(localStorage.getItem("dwds_status")==="OPEN"){alert("Tutup operasional terlebih dahulu sebelum reset.");return;}
+    if(!document.getElementById("backupConfirmed").checked){alert("Unduh dan simpan backup terbaru, lalu centang konfirmasi backup.");return;}
+    const count=getTransactions().length;
+    if(!confirm("RESET seluruh "+count+" transaksi dan semua checklist harian pada perangkat ini? Akun dan profil perusahaan tetap dipertahankan."))return;
+    localStorage.setItem("dwds_transactions","[]");
+    Object.keys(localStorage).filter(k=>k.startsWith("dwds_daily_checklist_")).forEach(k=>localStorage.removeItem(k));
+    document.getElementById("backupConfirmed").checked=false;
+    document.getElementById("manageMessage").innerText="Reset data operasional selesai. Akun dan profil perusahaan tetap tersimpan.";
+    renderDataManagement();updateDashboard();
+}
+
 
 function login() {
     const u = document.getElementById("username").value.trim();
@@ -410,6 +493,8 @@ function login() {
         document.getElementById("loginPage").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("userInfo").innerText = user.username + " | " + user.role;
+        const manageButton = document.getElementById("dataManagementButton");
+        if (manageButton) manageButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
         updateDashboard();
     } else {
         document.getElementById("loginMessage").innerText = "Username atau password salah!";
