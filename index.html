@@ -422,11 +422,31 @@ function downloadQr() {
     const holder = document.getElementById("qrcode");
     const img = holder.querySelector("img");
     const canvas = holder.querySelector("canvas");
-    let url = img ? img.src : (canvas ? canvas.toDataURL("image/png") : "");
-    if (!url) {
-        alert("QR belum siap. Coba beberapa saat lagi.");
+    let url = "";
+
+    // Gunakan sumber gambar yang benar-benar sudah berisi data.
+    if (img) {
+        const src = img.getAttribute("src") || img.src || "";
+        if (src.startsWith("data:image/")) url = src;
+    }
+    if (!url && canvas && canvas.width > 0 && canvas.height > 0) {
+        try { url = canvas.toDataURL("image/png"); } catch (e) {}
+    }
+    if (!url && img && img.complete && img.naturalWidth > 0) {
+        try {
+            const exportCanvas = document.createElement("canvas");
+            exportCanvas.width = img.naturalWidth;
+            exportCanvas.height = img.naturalHeight;
+            exportCanvas.getContext("2d").drawImage(img, 0, 0);
+            url = exportCanvas.toDataURL("image/png");
+        } catch (e) {}
+    }
+
+    if (!url || url === "data:,") {
+        alert("QR belum siap diunduh. Tunggu 1-2 detik, lalu tekan DOWNLOAD QR CODE sekali lagi.");
         return;
     }
+
     const a = document.createElement("a");
     a.href = url;
     a.download = (activeQr ? activeQr.nomor : "DWDS") + "-QR.png";
