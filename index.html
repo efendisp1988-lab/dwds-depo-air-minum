@@ -1119,11 +1119,21 @@ function printReportPdf(){
   .head img{flex:0 0 auto;max-width:65px!important;max-height:48px!important}
   h2{font-size:14px;margin:2px 0}h3{font-size:11px;margin:2px 0}
   p{margin:3px 0}
-  table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7px}
-  td,th{border:1px solid #999;padding:4px 3px;vertical-align:middle;overflow-wrap:anywhere}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.5px}
+  td,th{border:1px solid #999;padding:1.5px 2px;vertical-align:middle;overflow-wrap:break-word;line-height:1.1}
   th{background:#e8f1ec}thead{display:table-header-group}
-  tbody tr{height:9mm;page-break-inside:avoid;break-inside:avoid}
-  @media print{tbody tr{height:9mm}td,th{padding-top:4px;padding-bottom:4px}}
+  tbody tr{height:6mm;page-break-inside:avoid;break-inside:avoid}
+  th:nth-child(1),td:nth-child(1){width:3%;text-align:center}
+  th:nth-child(2),td:nth-child(2){width:8%}
+  th:nth-child(3),td:nth-child(3){width:9%}
+  th:nth-child(4),td:nth-child(4){width:7%}
+  th:nth-child(5),td:nth-child(5){width:12%}
+  th:nth-child(6),td:nth-child(6){width:8%}
+  th:nth-child(7),td:nth-child(7){width:28%}
+  th:nth-child(8),td:nth-child(8){width:7%}
+  th:nth-child(9),td:nth-child(9){width:10%}
+  th:nth-child(10),td:nth-child(10){width:8%}
+  @media print{tbody tr{height:6mm}td,th{padding-top:1.5px;padding-bottom:1.5px}}
   .closing{margin-top:10px;page-break-inside:avoid;break-inside:avoid;border-top:1px solid #aaa;padding-top:5px}
   .signs{display:flex;justify-content:space-between;gap:8px;margin-top:8px}
   .sign{width:32%;text-align:center;font-size:8px}.space{height:38px}
