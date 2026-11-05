@@ -721,12 +721,23 @@ async function importRecipientFile(file) {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
             if (!rows.length) throw new Error("File Excel tidak berisi data.");
-            const first = rows[0].map(v => String(v).trim().toLowerCase());
-            const nameCol = first.findIndex(v => /^(nama|nama penerima|penerima|name)$/.test(v));
-            const unitCol = first.findIndex(v => /^(unit|nama unit)$/.test(v));
-            const divCol = first.findIndex(v => /^(divisi|bagian|departemen)$/.test(v));
-            if (nameCol < 0) throw new Error("Kolom Nama Penerima tidak ditemukan. Gunakan judul kolom Nama Penerima, Unit, dan Divisi.");
-            importedRecipientRecords = rows.slice(1).map(row => ({nama:String(row[nameCol] || "").trim(),unit:unitCol >= 0 ? String(row[unitCol] || "").trim() : "",divisi:divCol >= 0 ? String(row[divCol] || "").trim() : ""})).filter(r => r.nama);
+            const normalizeHeader = v => String(v || "").trim().toLowerCase().replace(/[_-]/g, " ").replace(/[^a-z0-9 ]/g, "").replace(/\\s+/g, " ");
+            const nameAliases = ["nama", "nama penerima", "penerima", "name", "nama karyawan", "nama pegawai"];
+            const unitAliases = ["unit", "nama unit", "unit kerja"];
+            const divAliases = ["divisi", "bagian", "departemen", "department"];
+            let headerRow = -1, nameCol = -1, unitCol = -1, divCol = -1;
+            for (let ri = 0; ri < Math.min(rows.length, 15); ri++) {
+                const headers = rows[ri].map(normalizeHeader);
+                const candidate = headers.findIndex(v => nameAliases.includes(v));
+                if (candidate >= 0) {
+                    headerRow = ri; nameCol = candidate;
+                    unitCol = headers.findIndex(v => unitAliases.includes(v));
+                    divCol = headers.findIndex(v => divAliases.includes(v));
+                    break;
+                }
+            }
+            if (nameCol < 0) throw new Error("Judul kolom nama belum ditemukan pada 15 baris pertama. Pastikan ada judul kolom Nama, Nama Penerima, atau Nama Karyawan.");
+            importedRecipientRecords = rows.slice(headerRow + 1).map(row => ({nama:String(row[nameCol] || "").trim(),unit:unitCol >= 0 ? String(row[unitCol] || "").trim() : "",divisi:divCol >= 0 ? String(row[divCol] || "").trim() : ""})).filter(r => r.nama);
             text = importedRecipientRecords.map(r => r.nama).join("\n");
         } else if (ext === "pdf") {
             text = await readPdfText(file);
