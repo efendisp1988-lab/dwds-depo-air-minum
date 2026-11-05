@@ -134,6 +134,15 @@ body:has(#loginPage:not(.hidden)) .container {
     line-height:1.5;
     font-weight:bold;
 }
+.login-account-links {max-width:500px;margin:10px auto 0;display:flex;gap:8px;}
+.login-account-links button {font-size:12px;padding:10px 7px;margin:0;}
+.login-card h3 {text-align:center;color:#087eae;}
+.login-card label {display:block;margin-top:8px;font-weight:bold;font-size:13px;color:#164c77;}
+.login-card input {width:100%;padding:10px;border:1px solid #9bcfea;border-radius:9px;background:#fff;}
+.login-card button {border-radius:9px;}
+.login-card p[role="status"] {font-size:13px;white-space:pre-line;}
+@media(max-width:420px){.login-account-links{gap:5px}.login-account-links button{font-size:10px;}}
+
 @media (max-height:700px) {
     body:has(#loginPage:not(.hidden)) .container {padding-top:8px;padding-bottom:8px;}
     .login-card {padding:12px 16px 8px;}
@@ -258,6 +267,36 @@ footer {
     </div>
     <p class="login-version">DWDS V1.0 · OFFLINE OPERATIONAL SYSTEM</p>
 </section>
+<div class="login-account-links">
+    <button type="button" class="secondary" onclick="showAccountPage('register')">CREATE AKUN BARU</button>
+    <button type="button" class="secondary" onclick="showAccountPage('recovery')">LUPA PASSWORD?</button>
+</div>
+<section id="registerPage" class="card login-card hidden">
+    <h3>CREATE AKUN BARU</h3>
+    <p class="login-instruction">Pendaftaran akun Petugas Depo pada perangkat ini.</p>
+    <label>Nama Lengkap</label><input id="regName" placeholder="Nama sesuai identitas">
+    <label>NIK/NIP</label><input id="regNik" placeholder="Masukkan NIK/NIP">
+    <label>Unit Kerja</label><input id="regUnit" placeholder="Nama unit/depo">
+    <label>Username</label><input id="regUsername" autocomplete="username" placeholder="Buat username">
+    <label>Password (minimal 8 karakter)</label><input id="regPassword" type="password" autocomplete="new-password" placeholder="Buat password">
+    <label>Konfirmasi Password</label><input id="regConfirm" type="password" autocomplete="new-password" placeholder="Ulangi password">
+    <label>PIN Pemulihan (6 angka)</label><input id="regPin" inputmode="numeric" maxlength="6" placeholder="Buat PIN rahasia 6 angka">
+    <p class="login-instruction">Simpan PIN pemulihan. PIN diperlukan jika lupa password pada perangkat ini.</p>
+    <button onclick="registerAccount()">DAFTARKAN AKUN</button>
+    <p id="registerMessage" role="status"></p>
+    <button class="secondary" onclick="backToLogin()">KEMBALI KE LOGIN</button>
+</section>
+<section id="recoveryPage" class="card login-card hidden">
+    <h3>PEMULIHAN PASSWORD</h3>
+    <p class="login-instruction">Reset password menggunakan username dan PIN pemulihan yang dibuat saat pendaftaran.</p>
+    <label>Username</label><input id="recoverUsername" placeholder="Username akun">
+    <label>PIN Pemulihan</label><input id="recoverPin" inputmode="numeric" maxlength="6" placeholder="PIN 6 angka">
+    <label>Password Baru</label><input id="recoverPassword" type="password" placeholder="Minimal 8 karakter">
+    <label>Konfirmasi Password Baru</label><input id="recoverConfirm" type="password" placeholder="Ulangi password baru">
+    <button onclick="recoverAccount()">RESET PASSWORD</button>
+    <p id="recoveryMessage" role="status"></p>
+    <button class="secondary" onclick="backToLogin()">KEMBALI KE LOGIN</button>
+</section>
 
 <section id="dashboard" class="hidden">
 
@@ -265,6 +304,15 @@ footer {
         <h3>SELAMAT DATANG</h3>
         <p id="userInfo"></p>
         <p id="operationalStatus">Status: BELUM OPEN</p>
+        <button class="secondary" onclick="showAccountSettings()">PENGATURAN AKUN / GANTI PASSWORD</button>
+        <section id="accountSettings" class="hidden">
+            <h4>GANTI PASSWORD</h4>
+            <label>Password Saat Ini</label><input id="currentPassword" type="password">
+            <label>Password Baru (minimal 8 karakter)</label><input id="newPassword" type="password">
+            <label>Konfirmasi Password Baru</label><input id="confirmNewPassword" type="password">
+            <button onclick="changeOwnPassword()">SIMPAN PASSWORD BARU</button>
+            <p id="changePasswordMessage"></p>
+        </section>
     </div>
 
     <div class="card">
@@ -635,6 +683,80 @@ function login() {
     } else {
         document.getElementById("loginMessage").innerText = "Username atau password salah!";
     }
+}
+
+function getDwdsUsers() {
+    let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
+    if (!users) {
+        users = [{ username:"admin", password:"admin123", role:"Administrator", nama:"Administrator" }];
+        localStorage.setItem("dwds_users", JSON.stringify(users));
+    }
+    return users;
+}
+function showAccountPage(which) {
+    ["loginPage","registerPage","recoveryPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+    document.getElementById(which==="register"?"registerPage":"recoveryPage").classList.remove("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function backToLogin() {
+    ["registerPage","recoveryPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+function registerAccount() {
+    const nama=document.getElementById("regName").value.trim();
+    const nik=document.getElementById("regNik").value.trim();
+    const unit=document.getElementById("regUnit").value.trim();
+    const username=document.getElementById("regUsername").value.trim();
+    const password=document.getElementById("regPassword").value;
+    const confirmPassword=document.getElementById("regConfirm").value;
+    const pin=document.getElementById("regPin").value.trim();
+    const msg=document.getElementById("registerMessage");
+    const users=getDwdsUsers();
+    if(!nama||!nik||!unit||!username||!password||!confirmPassword||!pin){msg.innerText="Lengkapi seluruh kolom.";return;}
+    if(users.some(u=>String(u.username).toLowerCase()===username.toLowerCase())){msg.innerText="Username sudah digunakan pada perangkat ini.";return;}
+    if(password.length<8){msg.innerText="Password minimal 8 karakter.";return;}
+    if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
+    if(!/^\d{6}$/.test(pin)){msg.innerText="PIN pemulihan harus tepat 6 angka.";return;}
+    users.push({username,password,role:"Petugas Depo",nama,nik,unit,recoveryPin:pin,active:true,createdAt:new Date().toISOString()});
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    msg.innerText="Akun Petugas Depo berhasil dibuat pada perangkat ini. Silakan login.";
+    ["regName","regNik","regUnit","regUsername","regPassword","regConfirm","regPin"].forEach(id=>document.getElementById(id).value="");
+}
+function recoverAccount() {
+    const username=document.getElementById("recoverUsername").value.trim();
+    const pin=document.getElementById("recoverPin").value.trim();
+    const password=document.getElementById("recoverPassword").value;
+    const confirmPassword=document.getElementById("recoverConfirm").value;
+    const msg=document.getElementById("recoveryMessage");
+    const users=getDwdsUsers();
+    const user=users.find(u=>String(u.username).toLowerCase()===username.toLowerCase()&&u.recoveryPin===pin);
+    if(!user){msg.innerText="Username atau PIN pemulihan tidak cocok.";return;}
+    if(password.length<8){msg.innerText="Password baru minimal 8 karakter.";return;}
+    if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
+    user.password=password;
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    msg.innerText="Password berhasil direset. Silakan kembali ke halaman login.";
+    ["recoverUsername","recoverPin","recoverPassword","recoverConfirm"].forEach(id=>document.getElementById(id).value="");
+}
+function showAccountSettings() {
+    const panel=document.getElementById("accountSettings");
+    panel.classList.toggle("hidden");
+}
+function changeOwnPassword() {
+    const msg=document.getElementById("changePasswordMessage");
+    const users=getDwdsUsers();
+    const user=users.find(u=>u.username===currentUser.username);
+    const old=document.getElementById("currentPassword").value;
+    const next=document.getElementById("newPassword").value;
+    const confirmNext=document.getElementById("confirmNewPassword").value;
+    if(!user||user.password!==old){msg.innerText="Password saat ini tidak benar.";return;}
+    if(next.length<8){msg.innerText="Password baru minimal 8 karakter.";return;}
+    if(next!==confirmNext){msg.innerText="Konfirmasi password tidak sama.";return;}
+    user.password=next;
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    currentUser=user;
+    msg.innerText="Password berhasil diperbarui.";
+    ["currentPassword","newPassword","confirmNewPassword"].forEach(id=>document.getElementById(id).value="");
 }
 
 function openOperational() {
