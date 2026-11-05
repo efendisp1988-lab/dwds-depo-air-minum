@@ -942,7 +942,8 @@ async function importRecipientFile(file) {
             const nameAliases = ["nama", "nama penerima", "penerima", "name", "nama karyawan", "nama pegawai"];
             const unitAliases = ["unit", "nama unit", "unit kerja"];
             const divAliases = ["divisi", "bagian", "departemen", "department"];
-            let headerRow = -1, nameCol = -1, unitCol = -1, divCol = -1;
+            const gallonAliases = ["galon", "jumlah galon", "jml galon", "qty galon", "jumlah", "qty"];
+            let headerRow = -1, nameCol = -1, unitCol = -1, divCol = -1, gallonCol = -1;
             for (let ri = 0; ri < Math.min(rows.length, 15); ri++) {
                 const headers = rows[ri].map(normalizeHeader);
                 const candidate = headers.findIndex(v => nameAliases.includes(v));
@@ -950,11 +951,12 @@ async function importRecipientFile(file) {
                     headerRow = ri; nameCol = candidate;
                     unitCol = headers.findIndex(v => unitAliases.includes(v));
                     divCol = headers.findIndex(v => divAliases.includes(v));
+                    gallonCol = headers.findIndex(v => gallonAliases.includes(v));
                     break;
                 }
             }
             if (nameCol < 0) throw new Error("Judul kolom nama belum ditemukan pada 15 baris pertama. Pastikan ada judul kolom Nama, Nama Penerima, atau Nama Karyawan.");
-            importedRecipientRecords = rows.slice(headerRow + 1).map(row => ({nama:String(row[nameCol] || "").trim(),unit:unitCol >= 0 ? String(row[unitCol] || "").trim() : "",divisi:divCol >= 0 ? String(row[divCol] || "").trim() : ""})).filter(r => r.nama);
+            importedRecipientRecords = rows.slice(headerRow + 1).map(row => ({nama:String(row[nameCol] || "").trim(),unit:unitCol >= 0 ? String(row[unitCol] || "").trim() : "",divisi:divCol >= 0 ? String(row[divCol] || "").trim() : "",galon:gallonCol >= 0 ? Number(row[gallonCol]) || 0 : 1})).filter(r => r.nama);
             text = importedRecipientRecords.map(r => r.nama).join("\n");
         } else if (ext === "pdf") {
             text = await readPdfText(file);
@@ -980,7 +982,7 @@ async function importRecipientFile(file) {
         const combined = existing ? existing + "\n" + imported.join("\n") : imported.join("\n");
         document.getElementById("recipientNames").value = combined;
         updateRecipientCount();
-        msg.innerText = "Berhasil membaca " + imported.length + " penerima dari " + file.name + ". " + (importedRecipientRecords.length ? "Data Unit dan Divisi ikut disimpan." : "Untuk membawa Unit dan Divisi, gunakan Excel dengan kolom Nama Penerima, Unit, dan Divisi.") + " Periksa daftar sebelum disimpan.";
+        msg.innerText = "Berhasil membaca " + imported.length + " penerima dari " + file.name + ". " + (importedRecipientRecords.length ? "Data Unit, Divisi, dan Galon ikut disimpan." : "Untuk membawa Unit, Divisi, dan Galon, gunakan Excel dengan kolom Nama Penerima, Unit, Divisi, dan Jumlah Galon.") + " Periksa daftar sebelum disimpan.";
     } catch (error) {
         msg.innerText = "File belum dapat dibaca: " + error.message;
     }
