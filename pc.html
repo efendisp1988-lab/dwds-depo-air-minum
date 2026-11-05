@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#123b2a">
+<link rel="manifest" href="manifest.json">
+<title>DWDS - Versi Laptop / PC</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: #f0fbfd;
+    color: #24434b;
+}
+
+header {
+    background: linear-gradient(135deg, #35c4d5, #168da9);
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+header p {
+    margin-bottom: 0;
+    font-size: 12px;
+}
+
+.container {
+    padding: 20px;
+    max-width: 500px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px #00000012;
+}
+
+/* Login memakai gambar background DWDS yang diunggah ke repository */
+body:has(#loginPage:not(.hidden)) {
+    min-height:100vh;
+    min-height:100svh;
+    background:#bceefa url("dwds-background.png") center center / 100% 100% no-repeat fixed;
+    color:#164c77;
+    overflow-x:hidden;
+}
+body:has(#loginPage:not(.hidden)) > header,
+body:has(#loginPage:not(.hidden)) > footer {display:none;}
+body:has(#loginPage:not(.hidden)) .container {
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
+    min-height:100svh;
+    padding:0 16px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+.login-card {
+    width:100%;
+    margin:0 auto;
+    padding:18px 20px 12px;
+    border:1px solid #ffffffd9;
+    border-radius:20px;
+    background:rgba(255,255,255,.88);
+    box-shadow:0 8px 26px #075b8025;
+    backdrop-filter:blur(5px);
+}
+.login-form h3 {
+    margin:0 0 4px;
+    text-align:center;
+    color:#087eae;
+    font-size:21px;
+}
+.login-instruction {
+    margin:0 0 10px;
+    text-align:center;
+    color:#496d83;
+    font-size:12px;
+}
+.login-form label {
+    color:#164c77;
+    margin-top:7px;
+    font-size:13px;
+}
+.login-form input {
+    min-height:42px;
+    padding:10px 12px;
+    border:1px solid #9bcfea;
+    border-radius:10px;
+    background:rgba(255,255,255,.94);
+    font-size:14px;
+}
+.password-wrap {display:flex;align-items:stretch;gap:6px;}
+.password-wrap input {min-width:0;flex:1;}
+.password-toggle {
+    width:auto;
+    min-width:58px;
+    padding:0 9px;
+    margin:7px 0;
+    border:1px solid #9bcfea;
+    border-radius:10px;
+    background:#dff5ff;
+    color:#0878aa;
+    font-size:10px;
+}
+.login-submit {
+    margin-top:10px;
+    padding:12px;
+    border-radius:10px;
+    background:linear-gradient(90deg,#08bed4,#0878c4);
+    font-size:16px;
+    letter-spacing:1px;
+}
+.login-version {
+    margin:5px 0 0;
+    text-align:center;
+    color:#245b7c;
+    font-size:10px;
+    line-height:1.5;
+    font-weight:bold;
+}
+.login-account-links {max-width:500px;margin:10px auto 0;display:flex;gap:8px;}
+.login-account-links button {font-size:12px;padding:10px 7px;margin:0;}
+.login-card h3 {text-align:center;color:#087eae;}
+.login-card label {display:block;margin-top:8px;font-weight:bold;font-size:13px;color:#164c77;}
+.login-card input {width:100%;padding:10px;border:1px solid #9bcfea;border-radius:9px;background:#fff;}
+.login-card button {border-radius:9px;}
+.login-card p[role="status"] {font-size:13px;white-space:pre-line;}
+@media(max-width:420px){.login-account-links{gap:5px}.login-account-links button{font-size:10px;}}
+
+@media (max-height:700px) {
+    body:has(#loginPage:not(.hidden)) .container {padding-top:8px;padding-bottom:8px;}
+    .login-card {padding:12px 16px 8px;}
+    .login-form input {min-height:36px;padding:8px 10px;}
+}
+@media (min-width:700px) {
+    body:has(#loginPage:not(.hidden)) {
+        background-color:#079bc4;
+        background-image:url("dwds-background-desktop.jpg");
+        background-position:center center;
+        background-repeat:no-repeat;
+        background-size:cover;
+        background-attachment:fixed;
+    }
+    body:has(#loginPage:not(.hidden)) .container {
+        max-width:560px;
+        min-height:100vh;
+        padding:24px 20px;
+        justify-content:center;
+    }
+    .login-card {
+        max-width:500px;
+        padding:22px 26px 14px;
+        border-radius:22px;
+        background:rgba(255,255,255,.88);
+        box-shadow:0 14px 38px #034e7438;
+    }
+    .login-form h3 {font-size:24px;}
+    .login-instruction {font-size:14px;margin-bottom:16px;}
+    .login-form label {font-size:14px;margin-top:12px;}
+    .login-form input {min-height:46px;font-size:15px;}
+    .login-submit {padding:14px;font-size:17px;}
+    .login-version {font-size:11px;padding-top:10px;}
+}
+
+
+input, textarea, button {
+    width: 100%;
+    padding: 13px;
+    margin: 7px 0;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+input, textarea {
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #26352c;
+}
+
+textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+button {
+    border: none;
+    background: #20a9c2;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #5c9eae;
+}
+
+button.danger {
+    background: #b73535;
+}
+
+.hidden {
+    display: none;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-size: 12px;
+}
+
+/* Tampilan khusus laptop / PC */
+@media (min-width: 900px) {
+  body.dwds-pc {font-size:15px;}
+  body.dwds-pc .container {max-width:1440px;width:96%;padding:24px 30px;margin:0 auto;}
+  body.dwds-pc header {padding:18px 30px;}
+  body.dwds-pc header h2 {font-size:26px;}
+  body.dwds-pc header p {font-size:14px;}
+  body.dwds-pc #dashboard:not(.hidden) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;}
+  body.dwds-pc #dashboard > .card,
+  body.dwds-pc #dashboard > section {margin:0;min-width:0;}
+  body.dwds-pc #dashboard > .card:first-child {grid-column:1/-1;}
+  body.dwds-pc #adminAccountsPage,
+  body.dwds-pc #reportPage,
+  body.dwds-pc #recapPage,
+  body.dwds-pc #inputPage,
+  body.dwds-pc #scannerPage,
+  body.dwds-pc #companyProfilePage,
+  body.dwds-pc #dataManagementPage {grid-column:1/-1;}
+  body.dwds-pc input, body.dwds-pc select, body.dwds-pc textarea {max-width:100%;}
+  body.dwds-pc button {max-width:100%;}
+}
+@media (min-width:700px) {
+  body.dwds-pc:has(#loginPage:not(.hidden)) .container {max-width:720px;}
+  body.dwds-pc:has(#loginPage:not(.hidden)) .login-card {max-width:680px;}
+}
+
+</style>
+</head>
+
+<body class="dwds-pc">
+
+<header>
+    <h2>DWDS</h2>
+    <p>DEPO WATER DISTRIBUTION SYSTEM</p>
+    <p>OFFLINE OPERATIONAL SYSTEM V1.0</p>
+</header>
+
+<div class="container">
+
+<section id="loginPage" class="card login-card">
+    <div class="login-form">
+        <h3>SELAMAT DATANG</h3>
+        <p class="login-instruction">Silakan masuk menggunakan akun Anda.</p>
+        <label for="username">Username</label>
+        <input id="username" autocomplete="username" placeholder="Masukkan username">
+        <label for="password">Password</label>
+        <div class="password-wrap">
+            <input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password">
+            <button type="button" class="password-toggle" onclick="toggleLoginPassword()" aria-label="Tampilkan atau sembunyikan password">LIHAT</button>
+        </div>
+        <button class="login-submit" onclick="login()">MASUK</button>
+        <p id="loginMessage"></p>
+    </div>
+    <p class="login-version">DWDS V1.0 · OFFLINE OPERATIONAL SYSTEM</p>
+</section>
+<div class="login-account-links"><p style="text-align:center;font-size:12px;color:#245b7c">Akun dibuat dan dikelola oleh Administrator. Jika lupa username atau password, hubungi Administrator.</p></div>
+
+<section id="dashboard" class="hidden">
+
+    <div class="card">
+        <h3>SELAMAT DATANG</h3>
+        <p id="userInfo"></p>
+        <p id="operationalStatus">Status: BELUM OPEN</p>
+</div>
+
+    <div class="card">
+        <h3>RINGKASAN HARI INI</h3>
+
+        <div class="stat">
+            <span>Total Surat</span>
+            <b id="totalSurat">0</b>
+        </div>
+
+        <div class="stat">
+            <span>Total Penerima</span>
+            <b id="totalPenerima">0</b>
+        </div>
+
+        <div class="stat">
+            <span>Total Galon</span>
+            <b id="totalGalon">0</b>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>OPERASIONAL DEPO</h3>
+        <button onclick="openOperational()">OPEN OPERASIONAL</button>
+        <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
+        <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
+        <button class="secondary" onclick="showOcrPage()">FOTO SURAT JALAN (UJI OCR)</button>
+        <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
+        <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
+        <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
+        <button class="danger hidden" id="dataManagementButton" onclick="showDataManagement()">KELOLA / HAPUS LAPORAN (ADMIN)</button>
+        <button class="danger hidden" id="accountManagementButton" onclick="showAdminAccounts()">KELOLA AKUN (ADMIN)</button>
+        <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
+    </div>
+    <div class="card">
+        <h3>CHECKLIST PENYELESAIAN HARIAN</h3>
+        <p style="font-size:13px">Pastikan laporan kegiatan hari ini sudah disimpan dan dikirim kepada KTU.</p>
+        <div id="dailyChecklist">Memuat status...</div>
+        <button class="secondary" onclick="showReportPage()">BUKA LAPORAN HARIAN</button>
+    </div>
+
+    <section id="adminAccountsPage" class="card hidden">
+        <h3>KELOLA AKUN PENGGUNA</h3>
+        <p>Buat akun Petugas Depo atau KTU. Akun tersimpan pada perangkat ini.</p>
+        <label>Jenis Akun</label>
+        <select id="adminNewRole"><option value="Petugas Depo">Petugas Depo</option><option value="KTU">KTU</option></select>
+        <label>Username</label><input id="adminNewUsername" autocomplete="off" placeholder="Buat username">
+        <label>Password (minimal 8 karakter)</label><input id="adminNewPassword" type="password" placeholder="Buat password">
+        <label>Konfirmasi Password</label><input id="adminNewConfirm" type="password" placeholder="Ulangi password">
+        <label>PIN Pemulihan (6 angka)</label><input id="adminNewPin" inputmode="numeric" maxlength="6" placeholder="PIN pemulihan">
+        <button onclick="adminCreateAccount()">BUAT AKUN</button>
+        <p id="adminAccountMessage" role="status"></p>
+        <h4>DAFTAR AKUN</h4><div id="adminAccountList"></div>
+
+        <button class="secondary" onclick="backToDashboard()">KEMBALI KE DASHBOARD</button>
+    </section>
+
+    <section id="ocrPage" class="card hidden">
+        <h3>FOTO SURAT JALAN - UJI OCR</h3>
+        <p>Foto semua halaman surat jalan. Jika tabel berlanjut ke halaman berikutnya, tambahkan halaman berikutnya sebelum menjalankan pembacaan.</p>
+        <label>Foto halaman (gunakan kamera belakang)</label>
+        <input id="ocrPhotoInput" type="file" accept="image/*" capture="environment">
+        <div id="ocrPhotoList" style="margin-top:12px"></div>
+        <button class="secondary" onclick="clearOcrPhotos()">HAPUS SEMUA FOTO</button>
+        <button onclick="runOcrTrial()">BACA SEMUA HALAMAN</button>
+        <p id="ocrStatus" style="font-size:13px"></p>
+        <h4>HASIL PEMBACAAN - HALAMAN DIGABUNG</h4>
+        <p style="font-size:12px">Periksa hasil OCR. Untuk trial ini hasil belum otomatis menjadi transaksi.</p>
+        <textarea id="ocrResultText" rows="14" placeholder="Hasil OCR Bahasa Indonesia akan tampil di sini..." style="width:100%;box-sizing:border-box"></textarea>
+        <button class="secondary" onclick="copyOcrResult()">SALIN HASIL OCR</button>
+        <button class="secondary" onclick="hideOcrPage()">KEMBALI KE DASHBOARD</button>
+    </section>
+
+    <section id="inputPage" class="card hidden">
+        <h3>INPUT SURAT JALAN</h3>
+        <p>Masukkan nomor surat jalan, lalu import Excel berisi NIK/NIP dan Nama penerima. NIK/NIP menjadi identitas unik setiap karyawan.</p>
+        <label for="suratNomor">Nomor Surat Jalan</label>
+        <input id="suratNomor" type="text" placeholder="Contoh: SJ/DEPO/001/2026">
+        <label for="suratTanggal">Tanggal Surat</label>
+        <input id="suratTanggal" type="date">
+        <label for="recipientNames">Daftar Nama Penerima</label>
+        <textarea id="recipientNames" rows="8" placeholder="Satu nama per baris&#10;Contoh:&#10;Budi Santoso&#10;Andi Saputra&#10;Siti Aminah"></textarea>
+        <div style="margin-top:14px;padding:14px;background:#f1f5f2;border-radius:9px">
+            <b>IMPORT DAFTAR PENERIMA DARI FILE</b>
+            <p style="font-size:13px">Gunakan Excel (.xlsx/.xls) dengan kolom wajib NIK/NIP dan Nama. Kolom Unit, Divisi, dan Jumlah Galon bersifat opsional.</p>
+            <input id="recipientFile" type="file" accept=".docx,.pdf,.xlsx,.xls,.csv,.txt">
+            <p id="importMessage" style="font-size:13px"></p>
+        </div>
+        <p id="recipientCount">Jumlah penerima: 0</p>
+        <button onclick="saveDeliveryLetter()">SIMPAN SURAT JALAN</button>
+        <button class="secondary" onclick="hideInputForm()">KEMBALI</button>
+        <p id="formMessage"></p>
+    </section>
+
+    <section id="scannerPage" class="card hidden">
+        <h3>SCAN QR CODE SURAT JALAN</h3>
+        <p>Scan QR dari surat jalan yang sudah tersimpan di perangkat ini. Pemindaian berhasil akan mencatat seluruh penerima sebagai distribusi hari ini.</p>
+        <button onclick="startCamera()">AKTIFKAN KAMERA</button>
+        <video id="qrVideo" playsinline style="display:none;width:100%;border-radius:10px;background:#111"></video>
+        <canvas id="qrCanvas" class="hidden"></canvas>
+        <p style="font-weight:bold;text-align:center">Atau pilih gambar QR dari galeri:</p>
+        <input id="qrImageFile" type="file" accept="image/*">
+        <div id="scanMessage" style="margin-top:12px"></div>
+        <button class="secondary" onclick="stopCamera();hideScanner()">KEMBALI</button>
+    </section>
+
+    <section id="recapPage" class="card hidden">
+        <h3>DAFTAR SURAT JALAN</h3>
+        <div id="recapList">Belum ada transaksi.</div>
+        <div id="qrDisplay" class="hidden" style="margin-top:18px;padding:16px;border:1px solid #ddd;border-radius:10px;text-align:center">
+            <h3>QR CODE SURAT JALAN</h3>
+            <p id="qrLetterInfo"></p>
+            <p id="qrPayloadStatus" style="font-size:13px"></p>
+            <div id="qrcode" style="display:flex;justify-content:center;margin:15px auto;background:white;padding:10px"></div>
+            <p style="font-size:13px">QR ini membawa data surat jalan agar dapat dipindai di HP lain tanpa database pusat. Cetak setelah QR berhasil diuji.</p>
+            <button onclick="downloadQr()">DOWNLOAD QR CODE</button>
+            <button class="secondary" onclick="closeQr()">TUTUP QR</button>
+        </div>
+        <button class="secondary" onclick="hideRecap()">KEMBALI</button>
+    </section>
+
+    <section id="dataManagementPage" class="card hidden">
+        <h3>PENGELOLAAN DATA & LAPORAN</h3>
+        <p>Hanya Administrator. Hapus laporan berarti menghapus transaksi sumber dari perangkat ini. Profil perusahaan dan akun pengguna tidak ikut terhapus.</p>
+        <div class="stat"><span>Total surat tersimpan</span><b id="manageTotalLetters">0</b></div>
+        <div class="stat"><span>Total checklist harian</span><b id="manageTotalChecks">0</b></div>
+        <button onclick="downloadDataBackup()">UNDUH BACKUP DATA (JSON)</button>
+        <p id="backupStatus" style="font-size:13px"></p>
+        <hr>
+        <h4>HAPUS LAPORAN TERTENTU</h4>
+        <p>Pilih satu atau beberapa nomor surat jalan untuk langsung dihapus. Backup tersedia sebagai pilihan, tetapi tidak wajib untuk menghapus laporan tertentu.</p>
+        <div id="manageTransactionList"></div>
+        <label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input id="backupConfirmed" type="checkbox" style="width:auto"> Saya sudah mengunduh dan menyimpan backup terbaru.</label>
+        <button class="danger" onclick="deleteSelectedReports()">HAPUS LAPORAN TERPILIH</button>
+        <hr>
+        <h4>RESET DATA OPERASIONAL</h4>
+        <p>Menghapus seluruh transaksi dan checklist harian di perangkat ini. Akun pengguna, profil perusahaan, logo, dan pengaturan tetap dipertahankan.</p>
+        <button class="danger" onclick="resetOperationalData()">RESET SELURUH DATA OPERASIONAL</button>
+        <p id="manageMessage" style="font-size:13px"></p>
+        <button class="secondary" onclick="hideDataManagement()">KEMBALI KE DASHBOARD</button>
+    </section>
+
+    <section id="companyProfilePage" class="card hidden">
+        <h3>PROFIL PERUSAHAAN</h3>
+        <p>Pengaturan ini cukup diisi oleh admin atau penanggung jawab. Data akan digunakan otomatis pada laporan.</p>
+        <label>Nama Perusahaan</label><input id="companyName" placeholder="Nama perusahaan">
+        <label>Region</label><input id="companyRegion" placeholder="Contoh: Region Kubar 1">
+        <label>Nama Unit</label><input id="companyUnit" placeholder="Nama unit/depo">
+        <label>Alamat Perusahaan</label><textarea id="companyAddress" rows="2" placeholder="Alamat perusahaan"></textarea>
+        <label>Logo Perusahaan (PNG/JPG)</label><input id="companyLogoFile" type="file" accept="image/png,image/jpeg">
+        <img id="companyLogoPreview" class="hidden" style="max-width:130px;max-height:100px;object-fit:contain;margin-top:10px">
+        <hr><h4>PENANDATANGAN LAPORAN</h4>
+        <p>Nama dan jabatan akan ditampilkan pada laporan PDF.</p>
+        <b>Petugas Depo</b><label>Nama</label><input id="signDepoName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signDepoTitle" value="Petugas Depo">
+        <b>KTU</b><label>Nama</label><input id="signKtuName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signKtuTitle" value="KTU">
+        <b>Manager</b><label>Nama</label><input id="signManagerName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signManagerTitle" value="Manager">
+        <button onclick="saveReportProfile()">SIMPAN PROFIL PERUSAHAAN</button>
+        <p id="profileMessage"></p>
+        <button class="secondary" onclick="hideCompanyProfilePage()">KEMBALI KE DASHBOARD</button>
+    </section>
+
+    <section id="reportPage" class="card hidden">
+        <h3>LAPORAN HARIAN</h3>
+        <p>Pilih periode laporan, kemudian unduh Excel dan simpan PDF untuk dikirim kepada KTU.</p>
+        <h4>PERIODE LAPORAN</h4>
+        <label>Tanggal Mulai</label><input id="reportStart" type="date">
+        <label>Tanggal Akhir</label><input id="reportEnd" type="date">
+        <button onclick="exportReportExcel()">DOWNLOAD LAPORAN EXCEL</button>
+        <button class="secondary" onclick="printReportPdf()">CETAK / SIMPAN LAPORAN PDF</button>
+        <hr>
+        <h4>KONFIRMASI PENYELESAIAN LAPORAN HARIAN</h4>
+        <p style="font-size:13px">Konfirmasikan setelah file benar-benar tersimpan di HP dan laporan sudah dikirim ke KTU.</p>
+        <div id="reportDailyStatus" style="padding:10px;background:#f1f5f2;border-radius:8px;font-size:13px"></div>
+        <button class="secondary" onclick="confirmDailyTask('excel')">KONFIRMASI EXCEL SUDAH DISIMPAN</button>
+        <button class="secondary" onclick="confirmDailyTask('pdf')">KONFIRMASI PDF SUDAH DISIMPAN</button>
+        <button onclick="confirmDailyTask('sent')">KONFIRMASI LAPORAN SUDAH DIKIRIM KE KTU</button>
+        <p id="reportMessage"></p><button class="secondary" onclick="hideReportPage()">KEMBALI KE DASHBOARD</button>
+    </section>
+
+    <div class="card">
+        <button class="secondary" onclick="logout()">LOGOUT</button>
+    </div>
+
+</section>
+
+</div>
+
+<footer>
+    DWDS V1.0 | Depo Water Distribution System
+</footer>
+
+<script src="qrcode.min.js"></script>
+<script src="jsQR.js"></script>
+<script src="xlsx.full.min.js"></script>
+<script src="pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+let currentUser = null;
+let activeQr = null;
+let cameraStream = null;
+let scanFrame = null;
+let lastScanText = "";
+let importedRecipientRecords = [];
+
+function toggleLoginPassword() {
+    const field = document.getElementById("password");
+    const toggle = document.querySelector(".password-toggle");
+    if (!field || !toggle) return;
+    const visible = field.type === "password";
+    field.type = visible ? "text" : "password";
+    toggle.textContent = visible ? "SEMBUNYI" : "LIHAT";
+}
+
+function localDateString() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+}
+
+let ocrPhotos = [];
+function showOcrPage(){
+ ["inputPage","scannerPage","recapPage","reportPage","companyProfilePage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+ document.getElementById("ocrPage").classList.remove("hidden");
+ document.getElementById("ocrStatus").innerText="Tambahkan foto halaman pertama. Untuk dokumen beberapa halaman, tambahkan foto setiap halaman secara berurutan.";
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function hideOcrPage(){document.getElementById("ocrPage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
+function renderOcrPhotos(){
+ const box=document.getElementById("ocrPhotoList");
+ if(!ocrPhotos.length){box.innerHTML="<p>Belum ada foto halaman.</p>";return;}
+ box.innerHTML=ocrPhotos.map((file,i)=>'<div style="display:flex;align-items:center;gap:10px;margin:8px 0;padding:8px;border:1px solid #ddd;border-radius:8px"><img src="'+URL.createObjectURL(file)+'" style="width:64px;height:80px;object-fit:cover;border-radius:4px"><div><b>Halaman '+(i+1)+'</b><br><small>'+Math.round(file.size/1024)+' KB</small></div><button class="secondary" onclick="removeOcrPhoto('+i+')">HAPUS</button></div>').join("");
+}
+function removeOcrPhoto(index){ocrPhotos.splice(index,1);renderOcrPhotos();}
+function clearOcrPhotos(){ocrPhotos=[];document.getElementById("ocrPhotoInput").value="";document.getElementById("ocrResultText").value="";renderOcrPhotos();document.getElementById("ocrStatus").innerText="Foto dihapus.";}
+document.addEventListener("DOMContentLoaded",()=>{
+ const input=document.getElementById("ocrPhotoInput");
+ if(input)input.addEventListener("change",e=>{
+  const file=e.target.files&&e.target.files[0];if(!file)return;
+  if(!file.type.startsWith("image/")){alert("Pilih file foto/gambar.");return;}
+  ocrPhotos.push(file);renderOcrPhotos();e.target.value="";
+  document.getElementById("ocrStatus").innerText="Foto halaman "+ocrPhotos.length+" ditambahkan. Tambahkan halaman berikutnya jika ada.";
+ });
+});
+function prepareOcrImage(file){
+ return new Promise((resolve,reject)=>{
+  const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{
+   try{
+    const maxWidth=2400,scale=Math.min(1,maxWidth/img.width);
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+    const ctx=canvas.getContext("2d",{willReadFrequently:true});
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    const frame=ctx.getImageData(0,0,canvas.width,canvas.height),d=frame.data;
+    for(let i=0;i<d.length;i+=4){
+     let gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+     gray=Math.max(0,Math.min(255,(gray-128)*1.28+128));
+     d[i]=d[i+1]=d[i+2]=gray;
+    }
+    ctx.putImageData(frame,0,0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Gagal memproses foto.")),"image/png");
+   }catch(err){URL.revokeObjectURL(url);reject(err);}
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Foto tidak dapat dibuka."));};
+  img.src=url;
+ });
+}
+async function runOcrTrial(){
+ const status=document.getElementById("ocrStatus");
+ const output=document.getElementById("ocrResultText");
+ if(!ocrPhotos.length){alert("Foto minimal satu halaman terlebih dahulu.");return;}
+ if(!window.Tesseract){status.innerText="Mesin OCR belum termuat. Untuk uji pertama, sambungkan internet lalu muat ulang aplikasi.";return;}
+ let worker;
+ output.value="";
+ try{
+  status.innerText="Menyiapkan mesin OCR Bahasa Indonesia... (pertama kali perlu internet untuk memuat mesin dan data bahasa)";
+  worker=await Tesseract.createWorker("ind",1,{logger:m=>{
+   if(m.status==="recognizing text")status.innerText="Membaca halaman "+(window.ocrCurrentPage||1)+" dari "+ocrPhotos.length+" ("+Math.round((m.progress||0)*100)+"%)";
+  }});
+  await worker.setParameters({tessedit_pageseg_mode:"6",preserve_interword_spaces:"1"});
+  const all=[];
+  for(let i=0;i<ocrPhotos.length;i++){
+   window.ocrCurrentPage=i+1;
+   status.innerText="Memperjelas dan membaca halaman "+(i+1)+" dari "+ocrPhotos.length+"...";
+   const prepared=await prepareOcrImage(ocrPhotos[i]);
+   const result=await worker.recognize(prepared);
+   all.push("===== HALAMAN "+(i+1)+" =====\n"+(result.data.text||"").trim());
+   output.value=all.join("\n\n");
+  }
+  status.innerText="Selesai membaca "+ocrPhotos.length+" halaman dengan OCR Bahasa Indonesia. Periksa kembali nama, nomor, Unit, Divisi, dan jumlah galon.";
+ }catch(err){status.innerText="OCR gagal: "+(err&&err.message?err.message:String(err));}
+ finally{if(worker)await worker.terminate();}
+}
+async function copyOcrResult(){
+ const textValue=document.getElementById("ocrResultText").value;
+ if(!textValue){alert("Belum ada hasil OCR untuk disalin.");return;}
+ try{await navigator.clipboard.writeText(textValue);alert("Hasil OCR berhasil disalin.");}
+ catch(e){document.getElementById("ocrResultText").select();alert("Pilih teks lalu salin secara manual.");}
+}
+function getTransactions() {
+    return JSON.parse(localStorage.getItem("dwds_transactions") || "[]");
+}
+function showDataManagement() {
+    if (!currentUser || String(currentUser.role || "").toLowerCase() !== "administrator") {
+        alert("Akses ditolak. Modul ini hanya untuk Administrator.");
+        return;
+    }
+    document.getElementById("dataManagementPage").classList.remove("hidden");
+    renderDataManagement();
+    window.scrollTo({top:document.getElementById("dataManagementPage").offsetTop,behavior:"smooth"});
+}
+function hideDataManagement() {
+    document.getElementById("dataManagementPage").classList.add("hidden");
+}
+function renderDataManagement() {
+    const tx=getTransactions();
+    const checks=Object.keys(localStorage).filter(k=>k.startsWith("dwds_daily_checklist_"));
+    document.getElementById("manageTotalLetters").innerText=tx.length;
+    document.getElementById("manageTotalChecks").innerText=checks.length;
+    const box=document.getElementById("manageTransactionList");
+    if(!tx.length){box.innerHTML="<p>Tidak ada laporan tersimpan.</p>";return;}
+    box.innerHTML=tx.slice().reverse().map(t=>{
+        const id=escapeHtml(t.id||"");
+        return "<label style='display:flex;gap:8px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid #eee'><input type='checkbox' class='manage-report-check' value='"+id+"' style='width:auto;margin-top:3px'><span><b>"+escapeHtml(t.nomor||"Tanpa nomor")+"</b><br><small>Tanggal: "+displayDate(t.tanggal)+" | Penerima: "+Number(t.jumlah||0)+" | Galon: "+Number(t.galon||0)+" | "+(t.scannedAt?"Selesai":"Belum diproses")+"</small></span></label>";
+    }).join("");
+}
+function downloadDataBackup() {
+    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    const checklist={};
+    Object.keys(localStorage).filter(k=>k.startsWith("dwds_daily_checklist_")).forEach(k=>checklist[k]=localStorage.getItem(k));
+    const backup={app:"DWDS",type:"backup-before-delete",createdAt:new Date().toISOString(),transactions:getTransactions(),checklists:checklist};
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="DWDS-BACKUP-"+localDateString()+".json";document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    document.getElementById("backupStatus").innerText="File backup disiapkan. Pastikan file JSON benar-benar tersimpan sebelum mencentang konfirmasi.";
+}
+function deleteSelectedReports() {
+    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    if(localStorage.getItem("dwds_status")==="OPEN"){alert("Tutup operasional terlebih dahulu sebelum menghapus laporan.");return;}
+    const selected=[...document.querySelectorAll(".manage-report-check:checked")].map(x=>x.value);
+    if(!selected.length){alert("Pilih minimal satu laporan.");return;}
+    if(!confirm("Hapus "+selected.length+" laporan terpilih beserta data transaksi sumbernya dari perangkat ini? Tindakan ini tidak dapat dibatalkan."))return;
+    const keep=getTransactions().filter(t=>!selected.includes(String(t.id||"")));
+    localStorage.setItem("dwds_transactions",JSON.stringify(keep));
+    document.getElementById("manageMessage").innerText="Berhasil menghapus "+selected.length+" laporan. Profil dan akun tetap aman.";
+    renderDataManagement();updateDashboard();
+}
+function resetOperationalData() {
+    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    if(localStorage.getItem("dwds_status")==="OPEN"){alert("Tutup operasional terlebih dahulu sebelum reset.");return;}
+    if(!document.getElementById("backupConfirmed").checked){alert("Unduh dan simpan backup terbaru, lalu centang konfirmasi backup.");return;}
+    const count=getTransactions().length;
+    if(!confirm("RESET seluruh "+count+" transaksi dan semua checklist harian pada perangkat ini? Akun dan profil perusahaan tetap dipertahankan."))return;
+    localStorage.setItem("dwds_transactions","[]");
+    Object.keys(localStorage).filter(k=>k.startsWith("dwds_daily_checklist_")).forEach(k=>localStorage.removeItem(k));
+    document.getElementById("backupConfirmed").checked=false;
+    document.getElementById("manageMessage").innerText="Reset data operasional selesai. Akun dan profil perusahaan tetap tersimpan.";
+    renderDataManagement();updateDashboard();
+}
+
+
+function login() {
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value;
+    let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
+
+    if (!users) {
+        users = [{ username: "admin", password: "admin123", role: "Administrator" }];
+        localStorage.setItem("dwds_users", JSON.stringify(users));
+    }
+
+    const user = users.find(x => x.username === u && x.password === p);
+    if (user && user.active === false) {
+        document.getElementById("loginMessage").innerText = "Akun ini dinonaktifkan. Hubungi Administrator.";
+        return;
+    }
+    if (user) {
+        currentUser = user;
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("userInfo").innerText = user.username + " | " + user.role;
+        const manageButton = document.getElementById("dataManagementButton");
+        if (manageButton) manageButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
+        const accountButton = document.getElementById("accountManagementButton");
+        if (accountButton) accountButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
+        updateDashboard();
+    } else {
+        document.getElementById("loginMessage").innerText = "Username atau password salah!";
+    }
+}
+
+function showAdminAccounts() {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Hanya Administrator yang dapat mengelola akun.");return;}
+    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>{el.dataset.wasHidden=el.classList.contains("hidden")?"1":"0";el.classList.add("hidden");});
+    document.getElementById("adminAccountsPage").classList.remove("hidden");
+    renderAdminAccountList();
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function backToDashboard() {
+    document.getElementById("adminAccountsPage").classList.add("hidden");
+    document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>{
+        if(el.dataset.wasHidden==="1")el.classList.add("hidden");else el.classList.remove("hidden");
+        delete el.dataset.wasHidden;
+    });
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function adminCreateAccount() {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
+    const role=document.getElementById("adminNewRole").value;
+    const username=document.getElementById("adminNewUsername").value.trim();
+    const password=document.getElementById("adminNewPassword").value;
+    const confirmPassword=document.getElementById("adminNewConfirm").value;
+    const pin=document.getElementById("adminNewPin").value.trim();
+    const msg=document.getElementById("adminAccountMessage");
+    const users=getDwdsUsers();
+    if(!username||!password||!confirmPassword||!pin){msg.innerText="Lengkapi seluruh kolom.";return;}
+    if(users.some(x=>String(x.username).toLowerCase()===username.toLowerCase())){msg.innerText="Username sudah digunakan.";return;}
+    if(password.length<8){msg.innerText="Password minimal 8 karakter.";return;}
+    if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
+    if(!/^\\d{6}$/.test(pin)){msg.innerText="PIN harus tepat 6 angka.";return;}
+    users.push({username,password,role,recoveryPin:pin,active:true,createdAt:new Date().toISOString()});
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    ["adminNewUsername","adminNewPassword","adminNewConfirm","adminNewPin"].forEach(id=>document.getElementById(id).value="");
+    msg.innerText="Akun "+role+" berhasil dibuat pada perangkat ini.";
+    renderAdminAccountList();
+}
+function renderAdminAccountList() {
+    const box=document.getElementById("adminAccountList"); if(!box)return;
+    const users=getDwdsUsers();
+    box.innerHTML=users.map((u,i)=>'<div class="card" style="padding:10px;margin:8px 0"><b>'+escapeHtml(String(u.username))+'</b><br>'+escapeHtml(String(u.role||"Pengguna"))+' · '+(u.active===false?"NONAKTIF":"AKTIF")+(String(u.username).toLowerCase()==="admin"?'':'<br><button class="secondary" onclick="adminResetPassword('+i+')">RESET PASSWORD</button> <button class="secondary" onclick="toggleAccountStatus('+i+')">'+(u.active===false?"AKTIFKAN":"NONAKTIFKAN")+'</button>')+'</div>').join("");
+}
+function adminResetPassword(index) {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
+    const users=getDwdsUsers(); const user=users[index];
+    if(!user || String(user.username).toLowerCase()==="admin")return;
+    const next=prompt("Masukkan password baru untuk akun "+user.username+" (minimal 8 karakter):");
+    if(next===null)return;
+    if(next.length<8){alert("Password minimal 8 karakter.");return;}
+    user.password=next;
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    alert("Password akun "+user.username+" berhasil direset. Ekspor ulang data akun untuk memperbarui perangkat lain.");
+    renderAdminAccountList();
+}
+function getDwdsUsers() {
+    let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
+    if (!users) {
+        users = [{ username:"admin", password:"admin123", role:"Administrator", nama:"Administrator" }];
+        localStorage.setItem("dwds_users", JSON.stringify(users));
+    }
+    return users;
+}
+function showAccountPage(which) {
+    ["loginPage","registerPage","recoveryPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+    document.getElementById(which==="register"?"registerPage":"recoveryPage").classList.remove("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+function backToLogin() {
+    ["registerPage","recoveryPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+function registerAccount() {
+    const username=document.getElementById("regUsername").value.trim();
+    const password=document.getElementById("regPassword").value;
+    const confirmPassword=document.getElementById("regConfirm").value;
+    const pin=document.getElementById("regPin").value.trim();
+    const msg=document.getElementById("registerMessage");
+    const users=getDwdsUsers();
+    if(!username||!password||!confirmPassword||!pin){msg.innerText="Lengkapi seluruh kolom.";return;}
+    if(users.some(u=>String(u.username).toLowerCase()===username.toLowerCase())){msg.innerText="Username sudah digunakan pada perangkat ini.";return;}
+    if(password.length<8){msg.innerText="Password minimal 8 karakter.";return;}
+    if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
+    if(!/^\d{6}$/.test(pin)){msg.innerText="PIN pemulihan harus tepat 6 angka.";return;}
+    users.push({username,password,role:"Petugas Depo",recoveryPin:pin,active:true,createdAt:new Date().toISOString()});
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    msg.innerText="Akun Petugas Depo berhasil dibuat pada perangkat ini. Silakan login.";
+    ["regUsername","regPassword","regConfirm","regPin"].forEach(id=>document.getElementById(id).value="");
+}
+function recoverAccount() {
+    const username=document.getElementById("recoverUsername").value.trim();
+    const pin=document.getElementById("recoverPin").value.trim();
+    const password=document.getElementById("recoverPassword").value;
+    const confirmPassword=document.getElementById("recoverConfirm").value;
+    const msg=document.getElementById("recoveryMessage");
+    const users=getDwdsUsers();
+    const user=users.find(u=>String(u.username).toLowerCase()===username.toLowerCase()&&u.recoveryPin===pin);
+    if(!user){msg.innerText="Username atau PIN pemulihan tidak cocok.";return;}
+    if(password.length<8){msg.innerText="Password baru minimal 8 karakter.";return;}
+    if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
+    user.password=password;
+    localStorage.setItem("dwds_users",JSON.stringify(users));
+    msg.innerText="Password berhasil direset. Silakan kembali ke halaman login.";
+    ["recoverUsername","recoverPin","recoverPassword","recoverConfirm"].forEach(id=>document.getElementById(id).value="");
+}
+function openOperational() {
+    if (localStorage.getItem("dwds_status") === "OPEN") {
+        alert("Operasional sudah dibuka!");
+        return;
+    }
+    if (!confirm("Mulai operasional DEPO hari ini?")) return;
+
+    localStorage.setItem("dwds_status", "OPEN");
+    localStorage.setItem("dwds_date", localDateString());
+    // Data transaksi lama sengaja tidak dihapus saat membuka sesi baru.
+    updateDashboard();
+}
+
+function closeOperational() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Operasional belum dibuka!");
+        return;
+    }
+    if (!confirm("Yakin ingin CLOSE operasional? Pastikan seluruh transaksi sudah dicatat.")) return;
+
+    localStorage.setItem("dwds_status", "CLOSED");
+    updateDashboard();
+    alert("Operasional berhasil ditutup.");
+}
+
+function showInputForm() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Silakan OPEN operasional terlebih dahulu.");
+        return;
+    }
+    document.getElementById("inputPage").classList.remove("hidden");
+    document.getElementById("recapPage").classList.add("hidden");
+    document.getElementById("suratTanggal").value = localDateString();
+    document.getElementById("formMessage").innerText = "";
+    window.scrollTo({ top: document.getElementById("inputPage").offsetTop, behavior: "smooth" });
+}
+
+function hideInputForm() {
+    document.getElementById("inputPage").classList.add("hidden");
+}
+
+function saveDeliveryLetter() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Operasional sudah ditutup. Tidak dapat menambah transaksi.");
+        return;
+    }
+    const nomor = document.getElementById("suratNomor").value.trim();
+    const tanggal = document.getElementById("suratTanggal").value;
+    const names = document.getElementById("recipientNames").value.split(/\r?\n/).map(n => n.trim()).filter(Boolean);
+    const message = document.getElementById("formMessage");
+    if (!nomor || !tanggal || names.length === 0) {
+        message.innerText = "Lengkapi nomor surat, tanggal, dan import daftar Excel berisi NIK/NIP serta Nama.";
+        return;
+    }
+    if (importedRecipientRecords.length !== names.length || importedRecipientRecords.some(r => !r.nik || !r.nama)) {
+        message.innerText = "Import ulang file Excel yang memiliki NIK/NIP dan Nama lengkap untuk setiap penerima.";
+        return;
+    }
+    const transactions = getTransactions();
+    if (transactions.some(t => t.nomor.toLowerCase() === nomor.toLowerCase())) {
+        message.innerText = "Nomor surat jalan ini sudah pernah disimpan. Periksa kembali agar tidak terjadi duplikasi.";
+        return;
+    }
+    const ids = importedRecipientRecords.map(r => String(r.nik).replace(/\s+/g, "").toLowerCase());
+    if (new Set(ids).size !== ids.length) {
+        message.innerText = "NIK/NIP ganda ditemukan. Periksa kembali file Excel.";
+        return;
+    }
+    const records = importedRecipientRecords.map(r => ({
+        nik: String(r.nik), nama: r.nama, unit: r.unit || "", divisi: r.divisi || "",
+        galon: Number(r.galon) > 0 ? Number(r.galon) : 1
+    }));
+    const entry = {
+        id: "DWDS-" + Date.now(), nomor, tanggal,
+        recipients: records.map(r => r.nama),
+        recipientRecords: records,
+        jumlah: records.length,
+        galon: records.reduce((sum, r) => sum + r.galon, 0),
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser ? currentUser.username : "unknown"
+    };
+    transactions.push(entry);
+    localStorage.setItem("dwds_transactions", JSON.stringify(transactions));
+    document.getElementById("suratNomor").value = "";
+    document.getElementById("recipientNames").value = "";
+    importedRecipientRecords = [];
+    document.getElementById("recipientFile").value = "";
+    document.getElementById("importMessage").innerText = "";
+    document.getElementById("recipientCount").innerText = "Jumlah penerima: 0";
+    message.innerText = "Berhasil disimpan: " + records.length + " penerima dan " + entry.galon + " galon.";
+    updateDashboard();
+}
+function displayDate(value) {
+    if (!value) return "-";
+    const parts = String(value).slice(0, 10).split("-");
+    return parts.length === 3 ? parts[2] + "-" + parts[1] + "-" + parts[0] : value;
+}
+
+function showRecap() {
+    const transactions = getTransactions();
+    const box = document.getElementById("recapList");
+
+    if (transactions.length === 0) {
+        box.innerHTML = "<p>Belum ada transaksi.</p>";
+    } else {
+        box.innerHTML = transactions.slice().reverse().map(t => {
+            const records = t.recipientRecords || (t.recipients || []).map(nama => ({ nik: "", nama, unit: "", divisi: "", galon: 1 }));
+            const detailRows = records.map((r, i) =>
+                "<tr><td style='padding:7px;border-bottom:1px solid #eee'>" + (i + 1) +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.nik || "-") +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.nama) +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.unit || "-") +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee'>" + escapeHtml(r.divisi || "-") +
+                "</td><td style='padding:7px;border-bottom:1px solid #eee;text-align:center'>" + (r.galon || 1) + "</td></tr>"
+            ).join("");
+            return "<div style='padding:12px 0;border-bottom:1px solid #eee'>" +
+                "<b>" + escapeHtml(t.nomor) + "</b><br>" +
+                "Tanggal Surat: " + displayDate(t.tanggal) + "<br>" +
+                "Tanggal Distribusi: " + (t.scannedAt ? displayDate(t.scannedAt) + " " + new Date(t.scannedAt).toLocaleTimeString("id-ID") : "Belum didistribusikan") + "<br>" +
+                "Penerima: " + t.jumlah + " | Galon: " + t.galon + "<br>" +
+                "Status: " + (t.scannedAt ? "SUDAH DIPROSES" : "MENUNGGU SCAN") +
+                "<details style='margin-top:10px'><summary style='cursor:pointer;font-weight:bold'>LIHAT RINCIAN PENERIMA (" + records.length + ")</summary>" +
+                "<div style='overflow-x:auto;margin-top:8px'><table style='width:100%;min-width:760px;border-collapse:collapse;font-size:12px'><thead><tr><th style='padding:7px'>No</th><th style='padding:7px'>NIK/NIP</th><th style='padding:7px'>Nama</th><th style='padding:7px'>Unit</th><th style='padding:7px'>Divisi</th><th style='padding:7px'>Galon</th></tr></thead><tbody>" + detailRows + "</tbody></table></div></details>" +
+                "<button style='margin-top:10px' data-qr-id='" + escapeHtml(t.id) + "'>BUAT QR CODE</button></div>";
+        }).join("");
+        box.querySelectorAll("[data-qr-id]").forEach(button => {
+            button.addEventListener("click", () => generateQr(button.getAttribute("data-qr-id")));
+        });
+    }
+
+    document.getElementById("recapPage").classList.remove("hidden");
+    document.getElementById("inputPage").classList.add("hidden");
+    window.scrollTo({ top: document.getElementById("recapPage").offsetTop, behavior: "smooth" });
+}
+
+function hideRecap() {
+    document.getElementById("recapPage").classList.add("hidden");
+    closeQr();
+}
+
+async function encodeLetterPayload(item){
+ const payload={v:2,id:item.id,nomor:item.nomor,tanggal:item.tanggal,unit:item.unit||"",divisi:item.divisi||"",recipients:item.recipientRecords|| (item.recipients||[]).map(nama=>({nama,unit:"",divisi:"",galon:1})),jumlah:item.jumlah||0,galon:item.galon||0,createdAt:item.createdAt||new Date().toISOString()};
+ const raw=new TextEncoder().encode(JSON.stringify(payload));
+ if(typeof CompressionStream!=="undefined"){
+  const stream=new Blob([raw]).stream().pipeThrough(new CompressionStream("gzip"));
+  const compressed=new Uint8Array(await new Response(stream).arrayBuffer());
+  let binary="";compressed.forEach(b=>binary+=String.fromCharCode(b));
+  return "DWDS2:"+btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+ }
+ let binary="";raw.forEach(b=>binary+=String.fromCharCode(b));
+ return "DWDS2U:"+btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+async function generateQr(id) {
+ const transactions=getTransactions();
+ const item=transactions.find(t=>t.id===id);
+ if(!item){alert("Data surat jalan tidak ditemukan.");return;}
+ if(typeof QRCode==="undefined"){alert("Komponen QR belum berhasil dimuat. Muat ulang aplikasi.");return;}
+ activeQr=item;
+ document.getElementById("qrLetterInfo").innerText=item.nomor+" | "+item.tanggal+" | "+item.jumlah+" penerima | "+item.galon+" galon";
+ document.getElementById("qrcode").innerHTML="";
+ document.getElementById("qrDisplay").classList.remove("hidden");
+ document.getElementById("qrPayloadStatus").innerText="Menyiapkan QR berisi data surat jalan...";
+ try{
+  const encoded=await encodeLetterPayload(item);
+  document.getElementById("qrcode").innerHTML="";
+  new QRCode(document.getElementById("qrcode"),{text:encoded,width:420,height:420,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.L});
+  const qrRecords=item.recipientRecords||item.recipients||[];
+  const hasAllIds=qrRecords.length>0&&qrRecords.every(r=>r&&r.nik);
+  document.getElementById("qrPayloadStatus").innerText="QR memuat data surat jalan, "+qrRecords.length+" penerima, dan "+(hasAllIds?"NIK/NIP setiap penerima.":"data identitas dari transaksi lama.")+" Uji scan sebelum dicetak.";
+ }catch(err){
+  document.getElementById("qrcode").innerHTML="";
+  document.getElementById("qrPayloadStatus").innerText="Data terlalu besar untuk satu QR atau gagal dibuat. Coba kurangi ukuran data/pecah surat jalan. Detail: "+(err&&err.message?err.message:String(err));
+ }
+}
+
+function closeQr() {
+    document.getElementById("qrDisplay").classList.add("hidden");
+    document.getElementById("qrcode").innerHTML = "";
+    activeQr = null;
+}
+
+function downloadQr() {
+    const holder = document.getElementById("qrcode");
+    const img = holder.querySelector("img");
+    const canvas = holder.querySelector("canvas");
+    let url = "";
+
+    // Gunakan sumber gambar yang benar-benar sudah berisi data.
+    if (img) {
+        const src = img.getAttribute("src") || img.src || "";
+        if (src.startsWith("data:image/")) url = src;
+    }
+    if (!url && canvas && canvas.width > 0 && canvas.height > 0) {
+        try { url = canvas.toDataURL("image/png"); } catch (e) {}
+    }
+    if (!url && img && img.complete && img.naturalWidth > 0) {
+        try {
+            const exportCanvas = document.createElement("canvas");
+            exportCanvas.width = img.naturalWidth;
+            exportCanvas.height = img.naturalHeight;
+            exportCanvas.getContext("2d").drawImage(img, 0, 0);
+            url = exportCanvas.toDataURL("image/png");
+        } catch (e) {}
+    }
+
+    if (!url || url === "data:,") {
+        alert("QR belum siap diunduh. Tunggu 1-2 detik, lalu tekan DOWNLOAD QR CODE sekali lagi.");
+        return;
+    }
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (activeQr ? activeQr.nomor : "DWDS") + "-QR.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[ch]);
+}
+
+function getDailyChecklist() {
+    const key = "dwds_daily_checklist_" + localDateString();
+    return JSON.parse(localStorage.getItem(key) || '{"excel":false,"pdf":false,"sent":false}');
+}
+
+function saveDailyChecklist(data) {
+    localStorage.setItem("dwds_daily_checklist_" + localDateString(), JSON.stringify(data));
+}
+
+function confirmDailyTask(task) {
+    const data = getDailyChecklist();
+    if (task === "sent" && (!data.excel || !data.pdf)) {
+        alert("Simpan dan konfirmasi Excel serta PDF terlebih dahulu.");
+        return;
+    }
+    const labels = {excel:"Excel sudah disimpan",pdf:"PDF sudah disimpan",sent:"Laporan sudah dikirim ke KTU"};
+    if (!labels[task]) return;
+    if (!confirm("Konfirmasi: " + labels[task] + "?")) return;
+    data[task] = true;
+    data[task + "At"] = new Date().toISOString();
+    saveDailyChecklist(data);
+    updateDailyChecklist();
+}
+
+function updateDailyChecklist() {
+    const data = getDailyChecklist();
+    const rows = [["Excel tersimpan",data.excel],["PDF tersimpan",data.pdf],["Dikirim ke KTU",data.sent]];
+    const html = rows.map(row => "<div class='stat'><span>" + row[0] + "</span><b>" + (row[1] ? "SELESAI" : "BELUM") + "</b></div>").join("");
+    const dash = document.getElementById("dailyChecklist");
+    if (dash) dash.innerHTML = html;
+    const report = document.getElementById("reportDailyStatus");
+    if (report) report.innerHTML = html + "<p>Tanggal checklist: " + displayDate(localDateString()) + "</p>";
+}
+
+function updateDashboard() {
+    const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
+    document.getElementById("operationalStatus").innerText = "Status: " + status;
+
+    const data = getTransactions();
+    const today = localDateString();
+    const todaysData = data.filter(item => item.tanggal === today && item.scannedAt);
+    document.getElementById("totalSurat").innerText = todaysData.length;
+    const recipients = todaysData.reduce((sum, item) => sum + item.jumlah, 0);
+    document.getElementById("totalPenerima").innerText = recipients;
+    document.getElementById("totalGalon").innerText =
+        todaysData.reduce((sum, item) => sum + item.galon, 0);
+    updateDailyChecklist();
+}
+
+function showScanner() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Silakan OPEN operasional terlebih dahulu.");
+        return;
+    }
+    document.getElementById("scannerPage").classList.remove("hidden");
+    document.getElementById("inputPage").classList.add("hidden");
+    document.getElementById("recapPage").classList.add("hidden");
+    document.getElementById("scanMessage").innerText = "";
+    window.scrollTo({ top: document.getElementById("scannerPage").offsetTop, behavior: "smooth" });
+}
+
+function hideScanner() {
+    stopCamera();
+    document.getElementById("scannerPage").classList.add("hidden");
+}
+
+async function startCamera() {
+    const video = document.getElementById("qrVideo");
+    const message = document.getElementById("scanMessage");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        message.innerText = "Kamera tidak didukung browser ini. Gunakan pilihan gambar QR dari galeri.";
+        return;
+    }
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            },
+            audio: false
+        });
+        video.srcObject = cameraStream;
+        video.style.display = "block";
+        await video.play();
+        const track = cameraStream.getVideoTracks()[0];
+        if (track && track.applyConstraints) {
+            try { await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }); } catch (e) {}
+        }
+        message.innerText = "Kamera aktif. Arahkan QR memenuhi area kamera, jaga jarak sekitar 15-30 cm, dan hindari pantulan cahaya.";
+        scanCameraFrame();
+    } catch (error) {
+        message.innerText = "Kamera tidak dapat dibuka. Izinkan akses kamera atau gunakan gambar QR dari galeri.";
+    }
+}
+
+function scanCameraFrame() {
+    const video = document.getElementById("qrVideo");
+    const canvas = document.getElementById("qrCanvas");
+    if (!cameraStream || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        scanFrame = requestAnimationFrame(scanCameraFrame);
+        return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" });
+    if (code && code.data && code.data !== lastScanText) {
+        lastScanText = code.data;
+        processScannedQr(code.data);
+        stopCamera();
+        return;
+    }
+    scanFrame = requestAnimationFrame(scanCameraFrame);
+}
+
+function stopCamera() {
+    if (scanFrame) cancelAnimationFrame(scanFrame);
+    scanFrame = null;
+    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+    const video = document.getElementById("qrVideo");
+    if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.style.display = "none";
+    }
+}
+
+async function decodeLetterPayload(text){
+ const payloadStart=text.startsWith("DWDS2U:")?7:6;
+ let encoded=text.substring(payloadStart).replace(/-/g,"+").replace(/_/g,"/");
+ while(encoded.length%4)encoded+="=";
+ const binary=atob(encoded),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+ let raw;
+ if(text.startsWith("DWDS2:")){
+  if(typeof DecompressionStream==="undefined")throw new Error("Browser belum mendukung pembacaan QR terkompresi. Gunakan Chrome terbaru.");
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  raw=new Uint8Array(await new Response(stream).arrayBuffer());
+ }else raw=bytes;
+ return JSON.parse(new TextDecoder().decode(raw));
+}
+async function processScannedQr(text) {
+ const message=document.getElementById("scanMessage");
+ if(text.startsWith("DWDS1:")){
+  const id=text.substring(6),transactions=getTransactions(),item=transactions.find(t=>t.id===id);
+  if(!item){message.innerText="QR lama ini hanya berisi ID dan data tidak ada di HP ini. Minta QR versi data penuh dari penerbit.";return;}
+  if(item.scannedAt){message.innerText="QR ini sudah pernah diproses pada "+new Date(item.scannedAt).toLocaleString("id-ID")+". Duplikasi dicegah.";return;}
+  if(localStorage.getItem("dwds_status")!=="OPEN"){message.innerText="Operasional belum dibuka. Buka operasional sebelum memproses QR.";return;}
+  item.scannedAt=new Date().toISOString();item.scannedBy=currentUser?currentUser.username:"unknown";
+  localStorage.setItem("dwds_transactions",JSON.stringify(transactions));
+  message.innerText="BERHASIL! Surat "+item.nomor+" diproses. "+item.jumlah+" penerima dan "+item.galon+" galon tercatat.";
+  updateDashboard();return;
+ }
+ if(!text.startsWith("DWDS2:")&&!text.startsWith("DWDS2U:")){message.innerText="QR tidak dikenali sebagai QR surat jalan DWDS.";return;}
+ if(localStorage.getItem("dwds_status")!=="OPEN"){message.innerText="Operasional belum dibuka. Buka operasional sebelum memproses QR.";return;}
+ try{
+  const p=await decodeLetterPayload(text);
+  if(p.v!==2||!p.id||!p.nomor||!Array.isArray(p.recipients)||!p.recipients.length)throw new Error("Isi QR tidak lengkap.");
+  const records=p.recipients.map(r=>({nik:String(r.nik||r.nip||"").trim(),nama:String(r.nama||"").trim(),unit:String(r.unit||""),divisi:String(r.divisi||""),galon:Math.max(0,Number(r.galon)||0)}));
+  if(records.some(r=>!r.nama||r.galon<=0))throw new Error("Ada nama atau jumlah galon yang tidak valid.");
+  const ids=records.map(r=>r.nik.replace(/\\s+/g,"").toLowerCase()).filter(Boolean);
+  if(new Set(ids).size!==ids.length)throw new Error("NIK/NIP ganda ditemukan di dalam QR. Data ditolak.");
+  if(ids.length>0&&ids.length!==records.length)throw new Error("Sebagian data QR tidak memiliki NIK/NIP. Data ditolak agar identitas karyawan tidak hilang.");
+  const transactions=getTransactions();
+  if(transactions.some(t=>t.sourceQrId===p.id||String(t.nomor).toLowerCase()===String(p.nomor).toLowerCase())){
+   message.innerText="Surat "+p.nomor+" sudah pernah diimpor/diproses pada perangkat ini. Duplikasi dicegah.";return;
+  }
+  const now=new Date().toISOString(),totalGalon=records.reduce((sum,r)=>sum+r.galon,0);
+  const item={id:"DWDS-QR-"+p.id,sourceQrId:p.id,nomor:p.nomor,tanggal:p.tanggal||localDateString(),recipients:records.map(r=>r.nama),recipientRecords:records,jumlah:records.length,galon:totalGalon,createdAt:p.createdAt||now,createdBy:"Penerbit QR",scannedAt:now,scannedBy:currentUser?currentUser.username:"unknown",importedFromQr:true};
+  transactions.push(item);
+  localStorage.setItem("dwds_transactions",JSON.stringify(transactions));
+  message.innerText="BERHASIL! Surat "+item.nomor+" diimpor dari QR. "+item.jumlah+" penerima dan "+item.galon+" galon tercatat.";
+  updateDashboard();
+ }catch(err){message.innerText="QR terbaca tetapi datanya gagal diproses: "+(err&&err.message?err.message:String(err));}
+}
+
+function scanImageFile(file) {
+    const message = document.getElementById("scanMessage");
+    if (!file) return;
+    if (typeof jsQR !== "function") {
+        message.innerText = "Komponen pemindai belum termuat. Muat ulang aplikasi.";
+        return;
+    }
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.getElementById("qrCanvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(pixels.data, pixels.width, pixels.height);
+        if (code) processScannedQr(code.data);
+        else message.innerText = "QR tidak terbaca. Pastikan gambar jelas dan tidak terpotong.";
+        URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => { message.innerText = "Gambar tidak dapat dibuka."; };
+    img.src = URL.createObjectURL(file);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const picker = document.getElementById("qrImageFile");
+    if (picker) picker.addEventListener("change", event => scanImageFile(event.target.files[0]));
+});
+
+function showComing() {
+    alert("Fitur ini akan tersedia pada pembaruan berikutnya.");
+}
+
+function logout() {
+    currentUser = null;
+    document.getElementById("dashboard").classList.add("hidden");
+    document.getElementById("loginPage").classList.remove("hidden");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const names = document.getElementById("recipientNames");
+    if (names) {
+        names.addEventListener("input", () => updateRecipientCount());
+    }
+    const fileInput = document.getElementById("recipientFile");
+    if (fileInput) fileInput.addEventListener("change", event => importRecipientFile(event.target.files[0]));
+});
+
+function updateRecipientCount() {
+    const value = document.getElementById("recipientNames").value;
+    const count = value.split(/\r?\n/).map(n => n.trim()).filter(Boolean).length;
+    document.getElementById("recipientCount").innerText = "Jumlah penerima: " + count;
+}
+
+function cleanImportedLines(text) {
+    return text.split(/\r?\n/)
+        .map(line => line.replace(/^\s*\d+[.)\-]\s*/, "").replace(/^[-•*]\s*/, "").trim())
+        .filter(line => line && !/^(no|nomor|nama( penerima)?|daftar penerima|penerima)$/i.test(line));
+}
+
+async function readDocxText(file) {
+    // Baca file DOCX sebagai ZIP dan ambil teks dari word/document.xml tanpa koneksi internet.
+    const buffer = await file.arrayBuffer();
+    const view = new DataView(buffer);
+    let eocd = -1;
+    for (let i = view.byteLength - 22; i >= Math.max(0, view.byteLength - 65558); i--) {
+        if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error("Struktur file DOCX tidak dikenali.");
+    const entries = view.getUint16(eocd + 10, true);
+    const centralOffset = view.getUint32(eocd + 16, true);
+    let pos = centralOffset;
+    const decoder = new TextDecoder();
+    for (let i = 0; i < entries; i++) {
+        if (view.getUint32(pos, true) !== 0x02014b50) break;
+        const method = view.getUint16(pos + 10, true);
+        const compressedSize = view.getUint32(pos + 20, true);
+        const nameLen = view.getUint16(pos + 28, true);
+        const extraLen = view.getUint16(pos + 30, true);
+        const commentLen = view.getUint16(pos + 32, true);
+        const localOffset = view.getUint32(pos + 42, true);
+        const name = decoder.decode(new Uint8Array(buffer, pos + 46, nameLen));
+        if (name === "word/document.xml") {
+            const localNameLen = view.getUint16(localOffset + 26, true);
+            const localExtraLen = view.getUint16(localOffset + 28, true);
+            const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+            const compressed = new Uint8Array(buffer, dataStart, compressedSize);
+            let xmlBytes;
+            if (method === 0) xmlBytes = compressed;
+            else if (method === 8 && typeof DecompressionStream !== "undefined") {
+                const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+                xmlBytes = new Uint8Array(await new Response(stream).arrayBuffer());
+            } else throw new Error("Browser tidak mendukung pembacaan DOCX terkompresi.");
+            const xml = new DOMParser().parseFromString(decoder.decode(xmlBytes), "application/xml");
+            return Array.from(xml.getElementsByTagName("w:p")).map(p =>
+                Array.from(p.getElementsByTagName("w:t")).map(t => t.textContent).join("")
+            ).filter(Boolean).join("\n");
+        }
+        pos += 46 + nameLen + extraLen + commentLen;
+    }
+    throw new Error("Teks dokumen Word tidak ditemukan.");
+}
+
+async function readPdfText(file) {
+    if (typeof pdfjsLib === "undefined") throw new Error("Komponen pembaca PDF belum termuat.");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.2.146/pdf.worker.min.js";
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjsLib.getDocument({ data, disableWorker: true }).promise;
+    const pages = [];
+    for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+        const page = await pdf.getPage(pageNo);
+        const content = await page.getTextContent();
+        pages.push(content.items.map(item => item.str).join("\n"));
+    }
+    return pages.join("\n");
+}
+
+async function importRecipientFile(file) {
+    const msg = document.getElementById("importMessage");
+    if (!file) return;
+    msg.innerText = "Membaca file " + file.name + "...";
+    try {
+        const ext = file.name.split(".").pop().toLowerCase();
+        if (ext !== "xlsx" && ext !== "xls") {
+            throw new Error("Untuk tahap NIK/NIP, gunakan file Excel (.xlsx/.xls) dengan kolom NIK/NIP dan Nama. Format lain belum mendukung identitas unik.");
+        }
+        if (typeof XLSX === "undefined") throw new Error("Komponen Excel belum termuat.");
+        const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", raw: false });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+        if (!rows.length) throw new Error("File Excel tidak berisi data.");
+        const normalizeHeader = v => String(v || "").trim().toLowerCase().replace(/[_-]/g, " ").replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ");
+        const nameAliases = ["nama", "nama penerima", "penerima", "name", "nama karyawan", "nama pegawai"];
+        const idAliases = ["nik", "nip", "niknip", "nik nip", "nik karyawan", "nip karyawan", "nomor induk karyawan", "nomor induk pegawai", "id karyawan", "employee id"];
+        const unitAliases = ["unit", "nama unit", "unit kerja"];
+        const divAliases = ["divisi", "bagian", "departemen", "department"];
+        const gallonAliases = ["galon", "jumlah galon", "jml galon", "qty galon", "jumlah", "qty"];
+        let headerRow = -1, nameCol = -1, idCol = -1, unitCol = -1, divCol = -1, gallonCol = -1;
+        for (let ri = 0; ri < Math.min(rows.length, 15); ri++) {
+            const headers = rows[ri].map(normalizeHeader);
+            const candidate = headers.findIndex(v => nameAliases.includes(v));
+            const idCandidate = headers.findIndex(v => idAliases.includes(v));
+            if (candidate >= 0 && idCandidate >= 0) {
+                headerRow = ri; nameCol = candidate; idCol = idCandidate;
+                unitCol = headers.findIndex(v => unitAliases.includes(v));
+                divCol = headers.findIndex(v => divAliases.includes(v));
+                gallonCol = headers.findIndex(v => gallonAliases.includes(v));
+                break;
+            }
+        }
+        if (nameCol < 0 || idCol < 0) throw new Error("Kolom wajib belum ditemukan. Pastikan Excel memiliki judul kolom NIK/NIP dan Nama.");
+        const parsed = rows.slice(headerRow + 1).map((row, i) => ({
+            nik: String(row[idCol] == null ? "" : row[idCol]).trim(),
+            nama: String(row[nameCol] == null ? "" : row[nameCol]).trim(),
+            unit: unitCol >= 0 ? String(row[unitCol] || "").trim() : "",
+            divisi: divCol >= 0 ? String(row[divCol] || "").trim() : "",
+            galon: gallonCol >= 0 ? Number(row[gallonCol]) || 0 : 1,
+            sourceRow: headerRow + i + 2
+        })).filter(r => r.nama || r.nik);
+        if (!parsed.length) throw new Error("Tidak ditemukan data penerima di bawah judul kolom.");
+        const missing = parsed.filter(r => !r.nik || !r.nama);
+        if (missing.length) throw new Error("Ada " + missing.length + " baris tanpa NIK/NIP atau Nama. Periksa baris Excel: " + missing.slice(0, 8).map(r => r.sourceRow).join(", ") + ".");
+        const seen = new Set(), duplicates = [];
+        parsed.forEach(r => {
+            const key = r.nik.replace(/\s+/g, "").toLowerCase();
+            if (seen.has(key)) duplicates.push(r.nik);
+            seen.add(key);
+        });
+        if (duplicates.length) throw new Error("NIK/NIP ganda ditemukan: " + [...new Set(duplicates)].slice(0, 8).join(", ") + ". Setiap karyawan harus memiliki NIK/NIP unik.");
+        importedRecipientRecords = parsed.map(({sourceRow, ...r}) => r);
+        document.getElementById("recipientNames").value = importedRecipientRecords.map(r => r.nama).join("\n");
+        updateRecipientCount();
+        msg.innerText = "Berhasil membaca " + importedRecipientRecords.length + " penerima. NIK/NIP, Nama" + (unitCol >= 0 ? ", Unit" : "") + (divCol >= 0 ? ", Divisi" : "") + (gallonCol >= 0 ? ", Galon" : "") + " terbaca. NIK/NIP kosong atau ganda: tidak ada.";
+    } catch (error) {
+        importedRecipientRecords = [];
+        msg.innerText = "File belum dapat dibaca: " + error.message;
+    }
+}
+function getReportProfile(){return JSON.parse(localStorage.getItem("dwds_report_profile")||"{}");}
+function showCompanyProfilePage(){
+ document.getElementById("companyProfilePage").classList.remove("hidden");
+ ["reportPage","inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+ const p=getReportProfile();
+ ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{const el=document.getElementById(id);if(el&&p[id]!==undefined)el.value=p[id];});
+ const defaults={signDepoTitle:"Petugas Depo",signKtuTitle:"KTU",signManagerTitle:"Manager"};
+ Object.keys(defaults).forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=defaults[id];});
+ const preview=document.getElementById("companyLogoPreview");
+ if(p.logo){preview.src=p.logo;preview.classList.remove("hidden");}else{preview.removeAttribute("src");preview.classList.add("hidden");}
+ document.getElementById("profileMessage").innerText="";
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function hideCompanyProfilePage(){document.getElementById("companyProfilePage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
+function showReportPage(){
+ document.getElementById("reportPage").classList.remove("hidden");
+ updateDailyChecklist();
+ ["companyProfilePage","inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+ const today=localDateString();
+ document.getElementById("reportStart").value=document.getElementById("reportStart").value||today;
+ document.getElementById("reportEnd").value=document.getElementById("reportEnd").value||today;
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function hideReportPage(){document.getElementById("reportPage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
+document.getElementById("companyLogoFile").addEventListener("change",function(){
+ const file=this.files&&this.files[0];if(!file)return;
+ if(!["image/png","image/jpeg"].includes(file.type)){alert("Gunakan logo PNG atau JPG.");this.value="";return;}
+ if(file.size>3*1024*1024){alert("Ukuran logo maksimal 3 MB.");this.value="";return;}
+ const reader=new FileReader();reader.onload=()=>{
+  const img=new Image();img.onload=()=>{
+   const scale=Math.min(600/img.width,600/img.height,1),canvas=document.createElement("canvas");
+   canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+   canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+   window.pendingCompanyLogo=canvas.toDataURL("image/png");
+   const preview=document.getElementById("companyLogoPreview");preview.src=window.pendingCompanyLogo;preview.classList.remove("hidden");
+  };img.src=reader.result;
+ };reader.readAsDataURL(file);
+});
+function saveReportProfile(){
+ const p=getReportProfile();
+ ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{const el=document.getElementById(id);if(el)p[id]=el.value.trim();});
+ if(window.pendingCompanyLogo)p.logo=window.pendingCompanyLogo;
+ try{
+  localStorage.setItem("dwds_report_profile",JSON.stringify(p));
+  window.pendingCompanyLogo=null;
+  const msg=document.getElementById("profileMessage");
+  if(msg)msg.innerText="Profil perusahaan dan penandatangan berhasil disimpan di perangkat ini.";
+ }catch(e){
+  const msg=document.getElementById("profileMessage");
+  if(msg)msg.innerText="Gagal menyimpan. Coba gunakan logo dengan ukuran lebih kecil.";
+ }
+}
+function getFilteredReportData(){
+ const start=document.getElementById("reportStart").value,end=document.getElementById("reportEnd").value;
+ if(!start||!end||start>end)throw new Error("Periksa tanggal mulai dan akhir laporan.");
+ const data=getTransactions().filter(t=>t.scannedAt&&t.scannedAt.slice(0,10)>=start&&t.scannedAt.slice(0,10)<=end);
+ return {start,end,data};
+}
+function getReportRows(data){
+ const rows=[];
+ data.forEach(t=>{
+  const people=t.recipientRecords||(t.recipients||[]).map(nama=>({nama:nama,unit:"",divisi:"",galon:1}));
+  people.forEach(r=>rows.push({"Tanggal Surat":t.tanggal,"Tanggal Distribusi":t.scannedAt.slice(0,10),"Jam Distribusi":new Date(t.scannedAt).toLocaleTimeString("id-ID"),"No. Surat Jalan":t.nomor,"NIK/NIP":r.nik||"","Nama Penerima":r.nama,"Unit":r.unit||"","Divisi":r.divisi||"","Jumlah Galon":r.galon||1}));
+ });
+ return rows;
+}
+function exportReportExcel(){
+ try{
+  const q=getFilteredReportData();
+  if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
+  const p=getReportProfile(),rows=getReportRows(q.data),wb=XLSX.utils.book_new();
+  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]||0),0);
+  const ws=XLSX.utils.aoa_to_sheet([
+   ["LAPORAN DISTRIBUSI AIR DEPO"],
+   [p.companyName||""],
+   ["Region",p.companyRegion||""],
+   ["Nama Unit",p.companyUnit||""],
+   ["Alamat",p.companyAddress||""],
+   ["Periode",q.start+" s.d. "+q.end],
+   [],
+   ["RINGKASAN"],
+   ["Total Surat",q.data.length],
+   ["Total Penerima",rows.length],
+   ["Total Galon",total],
+   [],
+   ["No.","Tanggal Surat","Tanggal Distribusi","Jam Distribusi","No. Surat Jalan","NIK/NIP","Nama Penerima","Unit","Divisi","Jumlah Galon"],
+   ...rows.map((r,i)=>[i+1,r["Tanggal Surat"],r["Tanggal Distribusi"],r["Jam Distribusi"],r["No. Surat Jalan"],r["NIK/NIP"],r["Nama Penerima"],r.Unit,r.Divisi,r["Jumlah Galon"]])
+  ]);
+  ws["!cols"]=[{wch:7},{wch:16},{wch:19},{wch:16},{wch:24},{wch:16},{wch:32},{wch:18},{wch:18},{wch:14}];
+  ws["!freeze"]={xSplit:0,ySplit:12};
+  ws["!autofilter"]={ref:"A12:J"+(12+rows.length)};
+  XLSX.utils.book_append_sheet(wb,ws,"Laporan Distribusi");
+  const unitMap={};rows.forEach(r=>{const k=r.Unit||"Tidak diisi";unitMap[k]=(unitMap[k]||0)+Number(r["Jumlah Galon"]||0);});
+  const unitRows=Object.entries(unitMap);
+  const unitWs=XLSX.utils.aoa_to_sheet([["REKAP DISTRIBUSI BERDASARKAN UNIT"],["Periode",q.start+" s.d. "+q.end],[],["No.","Nama Unit","Total Penerima","Total Galon"],...unitRows.map(([unit,galon],i)=>[i+1,unit,rows.filter(r=>(r.Unit||"Tidak diisi")===unit).length,galon])]);
+  unitWs["!cols"]=[{wch:8},{wch:28},{wch:20},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,unitWs,"Rekap Unit");
+  XLSX.writeFile(wb,"Laporan-DWDS-"+q.start+"-"+q.end+".xlsx");
+  document.getElementById("reportMessage").innerText="Laporan Excel berhasil dibuat. Kolom sudah dipisah dan lebar disesuaikan.";
+ }catch(e){document.getElementById("reportMessage").innerText=e.message;}
+}
+function printReportPdf(){
+ try {
+  const q=getFilteredReportData();
+  if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
+  const p=getReportProfile(), rows=getReportRows(q.data);
+  const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]||0),0);
+  const cols=[
+   ["Tanggal Distribusi","Tanggal Distribusi"],["No. Surat Jalan","No. Surat Jalan"],
+   ["NIK/NIP","NIK/NIP"],["Nama Penerima","Nama Penerima"],
+   ["Unit","Unit"],["Divisi","Divisi"],["Jumlah Galon","Jumlah Galon"]
+  ];
+  const pageSize=42, pages=[];
+  for(let start=0;start<rows.length;start+=pageSize){
+   const chunk=rows.slice(start,start+pageSize), last=start+pageSize>=rows.length, first=start===0;
+   const body=chunk.map((r,i)=>"<tr><td>"+(start+i+1)+"</td>"+cols.map(([k])=>"<td>"+esc(r[k])+"</td>").join("")+"</tr>").join("");
+   pages.push('<section class="page'+(last?' last':'')+'">'+
+    (first?'<header>'+(p.logo?'<img src="'+p.logo+'">':'')+'<div><h2>'+esc(p.companyName||"LAPORAN DISTRIBUSI AIR DEPO")+'</h2><div>'+esc(p.companyAddress||"")+'</div><h3>LAPORAN DISTRIBUSI AIR DEPO</h3></div></header><div class="summary">Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'<br>Total Surat: '+q.data.length+' | Total Penerima: '+rows.length+' | Total Galon: '+total+'</div>':'<div class="continued">LAPORAN DISTRIBUSI AIR DEPO — LANJUTAN | Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'</div>')+
+    '<table><colgroup><col style="width:4%"><col style="width:12%"><col style="width:14%"><col style="width:12%"><col style="width:29%"><col style="width:10%"><col style="width:11%"><col style="width:8%"></colgroup><thead><tr><th>No</th>'+cols.map(([k])=>'<th>'+esc(k)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table>'+
+    (last?'<div class="closing"><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p><div class="signs">'+
+     '<div class="sign">Petugas Depo<div class="space"></div><b>'+esc(p.signDepoName||"................................")+'</b><br>'+esc(p.signDepoTitle||"Petugas Depo")+'</div>'+
+     '<div class="sign">Mengetahui, KTU<div class="space"></div><b>'+esc(p.signKtuName||"................................")+'</b><br>'+esc(p.signKtuTitle||"KTU")+'</div>'+
+     '<div class="sign">Menyetujui, Manager<div class="space"></div><b>'+esc(p.signManagerName||"................................")+'</b><br>'+esc(p.signManagerTitle||"Manager")+'</div></div><div class="foot">Dokumen dibuat melalui DWDS - Depo Water Distribution System</div></div>':'')+
+    '</section>');
+  }
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Laporan DWDS</title><style>'+
+   '@page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif;color:#222}body{font-size:8pt;line-height:1.2}'+
+   '.page{width:100%;min-height:279mm;position:relative;page-break-after:always;break-after:page;padding:0}.page:last-child{page-break-after:auto;break-after:auto}'+
+   'header{display:flex;align-items:center;gap:9px;border-bottom:1.5px solid #176b46;padding-bottom:6px;margin-bottom:7px;font-size:8pt}header img{max-width:65px;max-height:48px;object-fit:contain}h2{font-size:14pt;margin:0 0 3px}h3{font-size:10pt;margin:4px 0 0}.summary{font-size:8pt;margin-bottom:7px;line-height:1.5}.continued{font-size:9pt;font-weight:bold;border-bottom:1px solid #888;padding:4px 0;margin-bottom:6px}'+
+   'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.5pt}th,td{border:1px solid #777;padding:3px 3px;line-height:1.18;vertical-align:middle;overflow-wrap:anywhere}th{background:#e8f1ec;text-align:center}tbody tr{height:5.5mm;break-inside:avoid;page-break-inside:avoid}td:first-child{text-align:center}'+
+   '.closing{margin-top:8px;border-top:1px solid #aaa;padding-top:6px;font-size:8pt;break-inside:avoid}.closing p{margin:2px 0}.signs{display:flex;justify-content:space-between;gap:8px;margin-top:8px}.sign{width:32%;text-align:center;font-size:8pt}.space{height:25px}.foot{text-align:center;font-size:7pt;margin-top:7px}'+
+   '@media screen{body{background:#eee}.page{background:#fff;max-width:210mm;margin:10px auto;padding:0 2mm;box-shadow:0 1px 5px #aaa}}@media print{button{display:none}}'+
+   '</style></head><body>'+pages.join("")+'<button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>';
+  const w=window.open("","_blank");if(!w)throw new Error("Izinkan pop-up browser untuk membuka laporan.");
+  w.document.open();w.document.write(html);w.document.close();
+  document.getElementById("reportMessage").innerText="Laporan portrait A4 siap dicetak dengan teks tajam dan kolom lebih ringkas.";
+ }catch(e){document.getElementById("reportMessage").innerText=e.message;}
+}
+
+</script>
+
+</body>
+</html>
