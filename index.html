@@ -1112,17 +1112,20 @@ function printReportPdf(){
   const sign = (label,name,title) => '<div class="sign"><p>' + esc(label) + '</p><div class="space"></div><b>' + esc(name || "................................") + '</b><br>' + esc(title || label) + '</div>';
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Laporan DWDS</title>
   <style>
-  @page{size:A4 landscape;margin:10mm}
-  body{font-family:Arial,sans-serif;margin:0;font-size:10px;line-height:1.35;color:#222}
-  .head{display:flex;gap:15px;align-items:center;border-bottom:2px solid #176b46;padding-bottom:12px;margin-bottom:12px}
-  .head img{flex:0 0 auto}
-  table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px}
-  td,th{border:1px solid #999;padding:4px;vertical-align:top;overflow-wrap:anywhere}
+  @page{size:A4 landscape;margin:6mm}
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;margin:0;font-size:8px;line-height:1.15;color:#222}
+  .head{display:flex;gap:8px;align-items:center;border-bottom:1px solid #176b46;padding-bottom:5px;margin-bottom:5px}
+  .head img{flex:0 0 auto;max-width:65px!important;max-height:48px!important}
+  h2{font-size:14px;margin:2px 0}h3{font-size:11px;margin:2px 0}
+  p{margin:3px 0}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7px}
+  td,th{border:1px solid #999;padding:2px 3px;vertical-align:top;overflow-wrap:anywhere}
   th{background:#e8f1ec}thead{display:table-header-group}
-  tr{page-break-inside:avoid;break-inside:avoid}
-  .closing{margin-top:28px;page-break-inside:avoid;break-inside:avoid;border-top:1px solid #aaa;padding-top:12px}
-  .signs{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
-  .sign{width:32%;text-align:center;font-size:10px}.space{height:65px}
+  tr{page-break-inside:auto;break-inside:auto}
+  .closing{margin-top:10px;page-break-inside:avoid;break-inside:avoid;border-top:1px solid #aaa;padding-top:5px}
+  .signs{display:flex;justify-content:space-between;gap:8px;margin-top:8px}
+  .sign{width:32%;text-align:center;font-size:8px}.space{height:38px}
   @media print{button{display:none}}
   </style></head><body>
   <div class="head">${logo}<div><h2>${esc(p.companyName || "LAPORAN DISTRIBUSI AIR DEPO")}</h2>${esc(p.companyAddress || "")}<h3>LAPORAN DISTRIBUSI AIR DEPO</h3></div></div>
@@ -1131,7 +1134,7 @@ function printReportPdf(){
   <table><thead><tr><th>No</th>${keys.map(key => "<th>" + esc(key) + "</th>").join("")}</tr></thead><tbody>${body}</tbody></table>
   <div class="closing"><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p>
   <div class="signs">${sign("Petugas Depo",p.signDepoName,p.signDepoTitle)}${sign("Mengetahui, KTU",p.signKtuName,p.signKtuTitle)}${sign("Menyetujui, Manager",p.signManagerName,p.signManagerTitle)}</div></div>
-  <p style="text-align:center;margin-top:30px">Dokumen dibuat melalui DWDS - Depo Water Distribution System</p>
+  <p style="text-align:center;margin-top:8px;font-size:7px">Dokumen dibuat melalui DWDS - Depo Water Distribution System</p>
   <button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>`;
   const w = window.open("", "_blank");
   if (!w) throw new Error("Izinkan pop-up browser untuk membuka laporan.");
