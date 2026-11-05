@@ -15,12 +15,12 @@
 
 body {
     margin: 0;
-    background: #f1f5f2;
-    color: #26352c;
+    background: #f0fbfd;
+    color: #24434b;
 }
 
 header {
-    background: #123b2a;
+    background: linear-gradient(135deg, #35c4d5, #168da9);
     color: white;
     padding: 22px;
     text-align: center;
@@ -50,6 +50,118 @@ header p {
     box-shadow: 0 2px 8px #00000012;
 }
 
+.login-card {
+    margin: 34px auto 18px;
+    padding: 0;
+    max-width: 420px;
+    overflow: hidden;
+    border: 1px solid #d9f0f4;
+    border-radius: 20px;
+    box-shadow: 0 12px 34px #167e9618;
+}
+.login-brand {
+    position: relative;
+    overflow: hidden;
+    padding: 30px 20px 27px;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(145deg, #55d4df 0%, #20abc4 58%, #168da9 100%);
+}
+.login-brand h1 {
+    position: relative;
+    margin: 0;
+    font-size: 38px;
+    letter-spacing: 4px;
+    font-weight: 800;
+}
+.login-brand .login-subtitle {
+    position: relative;
+    margin: 5px 0 12px;
+    font-size: 11px;
+    letter-spacing: 1.1px;
+}
+.login-watermark {
+    position: absolute;
+    top: -22px;
+    left: 0;
+    right: 0;
+    font-size: 92px;
+    font-weight: 900;
+    letter-spacing: 5px;
+    color: #ffffff;
+    opacity: .10;
+}
+.login-tagline {
+    position: relative;
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid #ffffff70;
+    border-radius: 20px;
+    font-size: 10px;
+    letter-spacing: .8px;
+}
+.login-form {
+    padding: 24px 24px 12px;
+}
+.login-form h3 {
+    margin: 0 0 5px;
+    text-align: center;
+    color: #197f98;
+}
+.login-instruction {
+    margin: 0 0 18px;
+    text-align: center;
+    color: #718b91;
+    font-size: 13px;
+}
+.login-form label {
+    color: #42636b;
+}
+.login-form input {
+    border: 1px solid #cce5e9;
+    border-radius: 9px;
+    background: #fbfeff;
+}
+.password-wrap {
+    display: flex;
+    align-items: stretch;
+    gap: 7px;
+}
+.password-wrap input {
+    min-width: 0;
+    flex: 1;
+}
+.password-toggle {
+    width: auto;
+    min-width: 64px;
+    padding: 0 10px;
+    margin: 7px 0;
+    background: #e4f6f8;
+    color: #168da9;
+    border: 1px solid #ccebf0;
+    font-size: 11px;
+}
+.login-submit {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 9px;
+    background: linear-gradient(90deg, #24b7ca, #168da9);
+    letter-spacing: 1px;
+}
+.login-version {
+    margin: 0;
+    padding: 0 15px 19px;
+    text-align: center;
+    color: #8aa6ac;
+    font-size: 10px;
+    letter-spacing: .7px;
+}
+@media (max-width: 480px) {
+    .login-card { margin: 22px 2px 16px; }
+    .login-form { padding: 22px 18px 10px; }
+}
+
+
 input, textarea, button {
     width: 100%;
     padding: 13px;
@@ -78,14 +190,14 @@ label {
 
 button {
     border: none;
-    background: #176b43;
+    background: #20a9c2;
     color: white;
     font-weight: bold;
     cursor: pointer;
 }
 
 button.secondary {
-    background: #52675b;
+    background: #5c9eae;
 }
 
 button.danger {
@@ -122,12 +234,27 @@ footer {
 
 <div class="container">
 
-<section id="loginPage" class="card">
-    <h3>LOGIN PETUGAS</h3>
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">LOGIN</button>
-    <p id="loginMessage"></p>
+<section id="loginPage" class="card login-card">
+    <div class="login-brand">
+        <div class="login-watermark" aria-hidden="true">DWDS</div>
+        <h1>DWDS</h1>
+        <p class="login-subtitle">DEPO WATER DISTRIBUTION SYSTEM</p>
+        <span class="login-tagline">SISTEM OPERASIONAL DEPO AIR</span>
+    </div>
+    <div class="login-form">
+        <h3>SELAMAT DATANG</h3>
+        <p class="login-instruction">Silakan masuk menggunakan akun Anda.</p>
+        <label for="username">Username</label>
+        <input id="username" autocomplete="username" placeholder="Masukkan username">
+        <label for="password">Password</label>
+        <div class="password-wrap">
+            <input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password">
+            <button type="button" class="password-toggle" onclick="toggleLoginPassword()" aria-label="Tampilkan atau sembunyikan password">LIHAT</button>
+        </div>
+        <button class="login-submit" onclick="login()">MASUK</button>
+        <p id="loginMessage"></p>
+    </div>
+    <p class="login-version">OFFLINE OPERATIONAL SYSTEM · V1.0</p>
 </section>
 
 <section id="dashboard" class="hidden">
@@ -322,6 +449,15 @@ let cameraStream = null;
 let scanFrame = null;
 let lastScanText = "";
 let importedRecipientRecords = [];
+
+function toggleLoginPassword() {
+    const field = document.getElementById("password");
+    const toggle = document.querySelector(".password-toggle");
+    if (!field || !toggle) return;
+    const visible = field.type === "password";
+    field.type = visible ? "text" : "password";
+    toggle.textContent = visible ? "SEMBUNYI" : "LIHAT";
+}
 
 function localDateString() {
     const d = new Date();
