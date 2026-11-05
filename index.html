@@ -49,7 +49,7 @@ header p {
     box-shadow: 0 2px 8px #00000012;
 }
 
-input, button {
+input, textarea, button {
     width: 100%;
     padding: 13px;
     margin: 7px 0;
@@ -57,8 +57,22 @@ input, button {
     font-size: 15px;
 }
 
-input {
+input, textarea {
     border: 1px solid #ccc;
+    background: #fff;
+    color: #26352c;
+}
+
+textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 button {
@@ -145,10 +159,32 @@ footer {
     <div class="card">
         <h3>OPERASIONAL DEPO</h3>
         <button onclick="openOperational()">OPEN OPERASIONAL</button>
+        <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
         <button class="secondary" onclick="showComing()">SCAN QR CODE</button>
-        <button class="secondary" onclick="showComing()">REKAP TRANSAKSI</button>
+        <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
+
+    <section id="inputPage" class="card hidden">
+        <h3>INPUT SURAT JALAN</h3>
+        <p>Masukkan satu nomor surat jalan dan daftar nama penerima. Satu nama dihitung satu galon.</p>
+        <label for="suratNomor">Nomor Surat Jalan</label>
+        <input id="suratNomor" type="text" placeholder="Contoh: SJ/DEPO/001/2026">
+        <label for="suratTanggal">Tanggal Surat</label>
+        <input id="suratTanggal" type="date">
+        <label for="recipientNames">Daftar Nama Penerima</label>
+        <textarea id="recipientNames" rows="8" placeholder="Satu nama per baris&#10;Contoh:&#10;Budi Santoso&#10;Andi Saputra&#10;Siti Aminah"></textarea>
+        <p id="recipientCount">Jumlah penerima: 0</p>
+        <button onclick="saveDeliveryLetter()">SIMPAN SURAT JALAN</button>
+        <button class="secondary" onclick="hideInputForm()">KEMBALI</button>
+        <p id="formMessage"></p>
+    </section>
+
+    <section id="recapPage" class="card hidden">
+        <h3>DAFTAR SURAT JALAN</h3>
+        <div id="recapList">Belum ada transaksi.</div>
+        <button class="secondary" onclick="hideRecap()">KEMBALI</button>
+    </section>
 
     <div class="card">
         <button class="secondary" onclick="logout()">LOGOUT</button>
@@ -163,99 +199,180 @@ footer {
 </footer>
 
 <script>
-
 let currentUser = null;
 
+function localDateString() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+}
+
+function getTransactions() {
+    return JSON.parse(localStorage.getItem("dwds_transactions") || "[]");
+}
+
 function login() {
-
-    let u = document.getElementById("username").value.trim();
-    let p = document.getElementById("password").value;
-
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value;
     let users = JSON.parse(localStorage.getItem("dwds_users") || "null");
 
     if (!users) {
-        users = [{
-            username: "admin",
-            password: "admin123",
-            role: "Administrator"
-        }];
-
+        users = [{ username: "admin", password: "admin123", role: "Administrator" }];
         localStorage.setItem("dwds_users", JSON.stringify(users));
     }
 
-    let user = users.find(x =>
-        x.username === u &&
-        x.password === p
-    );
-
+    const user = users.find(x => x.username === u && x.password === p);
     if (user) {
         currentUser = user;
         document.getElementById("loginPage").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("userInfo").innerText =
-            user.username + " | " + user.role;
+        document.getElementById("userInfo").innerText = user.username + " | " + user.role;
         updateDashboard();
     } else {
-        document.getElementById("loginMessage").innerText =
-            "Username atau password salah!";
+        document.getElementById("loginMessage").innerText = "Username atau password salah!";
     }
 }
 
 function openOperational() {
-
     if (localStorage.getItem("dwds_status") === "OPEN") {
         alert("Operasional sudah dibuka!");
         return;
     }
-
     if (!confirm("Mulai operasional DEPO hari ini?")) return;
 
     localStorage.setItem("dwds_status", "OPEN");
-    localStorage.setItem("dwds_date", new Date().toISOString().slice(0,10));
-    localStorage.setItem("dwds_transactions", JSON.stringify([]));
-
+    localStorage.setItem("dwds_date", localDateString());
+    // Data transaksi lama sengaja tidak dihapus saat membuka sesi baru.
     updateDashboard();
 }
 
 function closeOperational() {
-
     if (localStorage.getItem("dwds_status") !== "OPEN") {
         alert("Operasional belum dibuka!");
         return;
     }
-
-    if (!confirm("Yakin ingin CLOSE operasional?")) return;
+    if (!confirm("Yakin ingin CLOSE operasional? Pastikan seluruh transaksi sudah dicatat.")) return;
 
     localStorage.setItem("dwds_status", "CLOSED");
-
     updateDashboard();
-
     alert("Operasional berhasil ditutup.");
 }
 
+function showInputForm() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Silakan OPEN operasional terlebih dahulu.");
+        return;
+    }
+    document.getElementById("inputPage").classList.remove("hidden");
+    document.getElementById("recapPage").classList.add("hidden");
+    document.getElementById("suratTanggal").value = localDateString();
+    document.getElementById("formMessage").innerText = "";
+    window.scrollTo({ top: document.getElementById("inputPage").offsetTop, behavior: "smooth" });
+}
+
+function hideInputForm() {
+    document.getElementById("inputPage").classList.add("hidden");
+}
+
+function saveDeliveryLetter() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Operasional sudah ditutup. Tidak dapat menambah transaksi.");
+        return;
+    }
+
+    const nomor = document.getElementById("suratNomor").value.trim();
+    const tanggal = document.getElementById("suratTanggal").value;
+    const rawNames = document.getElementById("recipientNames").value;
+    const names = rawNames.split(/\r?\n/).map(n => n.trim()).filter(Boolean);
+    const message = document.getElementById("formMessage");
+
+    if (!nomor || !tanggal || names.length === 0) {
+        message.innerText = "Lengkapi nomor surat, tanggal, dan minimal satu nama penerima.";
+        return;
+    }
+
+    const transactions = getTransactions();
+    if (transactions.some(t => t.nomor.toLowerCase() === nomor.toLowerCase())) {
+        message.innerText = "Nomor surat jalan ini sudah pernah disimpan. Periksa kembali agar tidak terjadi duplikasi.";
+        return;
+    }
+
+    const uniqueNames = [...new Set(names.map(n => n.toLowerCase()))];
+    if (uniqueNames.length !== names.length) {
+        message.innerText = "Ada nama penerima yang tercantum lebih dari satu kali. Periksa daftar nama terlebih dahulu.";
+        return;
+    }
+
+    const entry = {
+        id: "DWDS-" + Date.now(),
+        nomor,
+        tanggal,
+        recipients: names,
+        jumlah: names.length,
+        galon: names.length,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser ? currentUser.username : "unknown"
+    };
+
+    transactions.push(entry);
+    localStorage.setItem("dwds_transactions", JSON.stringify(transactions));
+
+    document.getElementById("suratNomor").value = "";
+    document.getElementById("recipientNames").value = "";
+    document.getElementById("recipientCount").innerText = "Jumlah penerima: 0";
+    message.innerText = "Berhasil disimpan: " + names.length + " penerima dan " + names.length + " galon.";
+    updateDashboard();
+}
+
+function showRecap() {
+    const transactions = getTransactions();
+    const box = document.getElementById("recapList");
+
+    if (transactions.length === 0) {
+        box.innerHTML = "<p>Belum ada transaksi.</p>";
+    } else {
+        box.innerHTML = transactions.slice().reverse().map(t =>
+            "<div style='padding:12px 0;border-bottom:1px solid #eee'>" +
+            "<b>" + escapeHtml(t.nomor) + "</b><br>" +
+            "Tanggal: " + escapeHtml(t.tanggal) + "<br>" +
+            "Penerima: " + t.jumlah + " | Galon: " + t.galon +
+            "</div>"
+        ).join("");
+    }
+
+    document.getElementById("recapPage").classList.remove("hidden");
+    document.getElementById("inputPage").classList.add("hidden");
+    window.scrollTo({ top: document.getElementById("recapPage").offsetTop, behavior: "smooth" });
+}
+
+function hideRecap() {
+    document.getElementById("recapPage").classList.add("hidden");
+}
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[ch]);
+}
+
 function updateDashboard() {
+    const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
+    document.getElementById("operationalStatus").innerText = "Status: " + status;
 
-    let status = localStorage.getItem("dwds_status") || "BELUM OPEN";
-
-    document.getElementById("operationalStatus").innerText =
-        "Status: " + status;
-
-    let data = JSON.parse(
-        localStorage.getItem("dwds_transactions") || "[]"
-    );
-
-    document.getElementById("totalSurat").innerText = data.length;
-
-    let penerima = data.reduce(
-        (sum, item) => sum + item.jumlah, 0
-    );
-
-    document.getElementById("totalPenerima").innerText = penerima;
-    document.getElementById("totalGalon").innerText = penerima;
+    const data = getTransactions();
+    const today = localDateString();
+    const todaysData = data.filter(item => item.tanggal === today);
+    document.getElementById("totalSurat").innerText = todaysData.length;
+    const recipients = todaysData.reduce((sum, item) => sum + item.jumlah, 0);
+    document.getElementById("totalPenerima").innerText = recipients;
+    document.getElementById("totalGalon").innerText =
+        todaysData.reduce((sum, item) => sum + item.galon, 0);
 }
 
 function showComing() {
-    alert("Fitur akan kita bangun pada tahap berikutnya.");
+    alert("Fitur pemindaian QR Code akan kita aktifkan setelah modul surat jalan selesai diuji.");
 }
 
 function logout() {
@@ -264,6 +381,15 @@ function logout() {
     document.getElementById("loginPage").classList.remove("hidden");
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    const names = document.getElementById("recipientNames");
+    if (names) {
+        names.addEventListener("input", () => {
+            const count = names.value.split(/\r?\n/).map(n => n.trim()).filter(Boolean).length;
+            document.getElementById("recipientCount").innerText = "Jumlah penerima: " + count;
+        });
+    }
+});
 </script>
 
 </body>
