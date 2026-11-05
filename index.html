@@ -160,7 +160,7 @@ footer {
         <h3>OPERASIONAL DEPO</h3>
         <button onclick="openOperational()">OPEN OPERASIONAL</button>
         <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
-        <button class="secondary" onclick="showComing()">SCAN QR CODE</button>
+        <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
@@ -178,6 +178,18 @@ footer {
         <button onclick="saveDeliveryLetter()">SIMPAN SURAT JALAN</button>
         <button class="secondary" onclick="hideInputForm()">KEMBALI</button>
         <p id="formMessage"></p>
+    </section>
+
+    <section id="scannerPage" class="card hidden">
+        <h3>SCAN QR CODE SURAT JALAN</h3>
+        <p>Scan QR dari surat jalan yang sudah tersimpan di perangkat ini. Pemindaian berhasil akan mencatat seluruh penerima sebagai distribusi hari ini.</p>
+        <button onclick="startCamera()">AKTIFKAN KAMERA</button>
+        <video id="qrVideo" playsinline style="display:none;width:100%;border-radius:10px;background:#111"></video>
+        <canvas id="qrCanvas" class="hidden"></canvas>
+        <p style="font-weight:bold;text-align:center">Atau pilih gambar QR dari galeri:</p>
+        <input id="qrImageFile" type="file" accept="image/*">
+        <div id="scanMessage" style="margin-top:12px"></div>
+        <button class="secondary" onclick="stopCamera();hideScanner()">KEMBALI</button>
     </section>
 
     <section id="recapPage" class="card hidden">
@@ -207,9 +219,13 @@ footer {
 </footer>
 
 <script src="qrcode.min.js"></script>
+<script src="jsQR.js"></script>
 <script>
 let currentUser = null;
 let activeQr = null;
+let cameraStream = null;
+let scanFrame = null;
+let lastScanText = "";
 
 function localDateString() {
     const d = new Date();
@@ -347,7 +363,8 @@ function showRecap() {
             "<div style='padding:12px 0;border-bottom:1px solid #eee'>" +
             "<b>" + escapeHtml(t.nomor) + "</b><br>" +
             "Tanggal: " + escapeHtml(t.tanggal) + "<br>" +
-            "Penerima: " + t.jumlah + " | Galon: " + t.galon +
+            "Penerima: " + t.jumlah + " | Galon: " + t.galon + "<br>" +
+            "Status: " + (t.scannedAt ? "SUDAH DIPROSES" : "MENUNGGU SCAN") +
             "<button style='margin-top:10px' data-qr-id='" + escapeHtml(t.id) + "'>BUAT QR CODE</button>" +
             "</div>"
         ).join("");
@@ -430,7 +447,7 @@ function updateDashboard() {
 
     const data = getTransactions();
     const today = localDateString();
-    const todaysData = data.filter(item => item.tanggal === today);
+    const todaysData = data.filter(item => item.tanggal === today && item.scannedAt);
     document.getElementById("totalSurat").innerText = todaysData.length;
     const recipients = todaysData.reduce((sum, item) => sum + item.jumlah, 0);
     document.getElementById("totalPenerima").innerText = recipients;
@@ -438,8 +455,140 @@ function updateDashboard() {
         todaysData.reduce((sum, item) => sum + item.galon, 0);
 }
 
+function showScanner() {
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        alert("Silakan OPEN operasional terlebih dahulu.");
+        return;
+    }
+    document.getElementById("scannerPage").classList.remove("hidden");
+    document.getElementById("inputPage").classList.add("hidden");
+    document.getElementById("recapPage").classList.add("hidden");
+    document.getElementById("scanMessage").innerText = "";
+    window.scrollTo({ top: document.getElementById("scannerPage").offsetTop, behavior: "smooth" });
+}
+
+function hideScanner() {
+    stopCamera();
+    document.getElementById("scannerPage").classList.add("hidden");
+}
+
+async function startCamera() {
+    const video = document.getElementById("qrVideo");
+    const message = document.getElementById("scanMessage");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        message.innerText = "Kamera tidak didukung browser ini. Gunakan pilihan gambar QR dari galeri.";
+        return;
+    }
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: false
+        });
+        video.srcObject = cameraStream;
+        video.style.display = "block";
+        await video.play();
+        message.innerText = "Arahkan kamera ke QR Code surat jalan.";
+        scanCameraFrame();
+    } catch (error) {
+        message.innerText = "Kamera tidak dapat dibuka. Izinkan akses kamera atau gunakan gambar QR dari galeri.";
+    }
+}
+
+function scanCameraFrame() {
+    const video = document.getElementById("qrVideo");
+    const canvas = document.getElementById("qrCanvas");
+    if (!cameraStream || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        scanFrame = requestAnimationFrame(scanCameraFrame);
+        return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(image.data, image.width, image.height, { inversionAttempts: "dontInvert" });
+    if (code && code.data && code.data !== lastScanText) {
+        lastScanText = code.data;
+        processScannedQr(code.data);
+        stopCamera();
+        return;
+    }
+    scanFrame = requestAnimationFrame(scanCameraFrame);
+}
+
+function stopCamera() {
+    if (scanFrame) cancelAnimationFrame(scanFrame);
+    scanFrame = null;
+    if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+    const video = document.getElementById("qrVideo");
+    if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.style.display = "none";
+    }
+}
+
+function processScannedQr(text) {
+    const message = document.getElementById("scanMessage");
+    if (!text.startsWith("DWDS1:")) {
+        message.innerText = "QR tidak dikenali sebagai QR surat jalan DWDS.";
+        return;
+    }
+    const id = text.substring(6);
+    const transactions = getTransactions();
+    const item = transactions.find(t => t.id === id);
+    if (!item) {
+        message.innerText = "Data surat jalan tidak ditemukan di perangkat ini. QR harus dipindai pada HP yang menyimpan data surat tersebut.";
+        return;
+    }
+    if (item.scannedAt) {
+        message.innerText = "QR ini sudah pernah diproses pada " + new Date(item.scannedAt).toLocaleString("id-ID") + ". Duplikasi dicegah.";
+        return;
+    }
+    if (localStorage.getItem("dwds_status") !== "OPEN") {
+        message.innerText = "Operasional sudah ditutup. QR tidak dapat diproses.";
+        return;
+    }
+
+    item.scannedAt = new Date().toISOString();
+    item.scannedBy = currentUser ? currentUser.username : "unknown";
+    localStorage.setItem("dwds_transactions", JSON.stringify(transactions));
+    message.innerText = "BERHASIL! Surat " + item.nomor + " diproses. " + item.jumlah + " penerima dan " + item.galon + " galon tercatat.";
+    updateDashboard();
+}
+
+function scanImageFile(file) {
+    const message = document.getElementById("scanMessage");
+    if (!file) return;
+    if (typeof jsQR !== "function") {
+        message.innerText = "Komponen pemindai belum termuat. Muat ulang aplikasi.";
+        return;
+    }
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.getElementById("qrCanvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(pixels.data, pixels.width, pixels.height);
+        if (code) processScannedQr(code.data);
+        else message.innerText = "QR tidak terbaca. Pastikan gambar jelas dan tidak terpotong.";
+        URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => { message.innerText = "Gambar tidak dapat dibuka."; };
+    img.src = URL.createObjectURL(file);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const picker = document.getElementById("qrImageFile");
+    if (picker) picker.addEventListener("change", event => scanImageFile(event.target.files[0]));
+});
+
 function showComing() {
-    alert("Fitur pemindaian QR Code akan kita aktifkan setelah modul surat jalan selesai diuji.");
+    alert("Fitur ini akan tersedia pada pembaruan berikutnya.");
 }
 
 function logout() {
