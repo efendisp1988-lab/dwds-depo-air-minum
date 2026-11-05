@@ -394,7 +394,7 @@ function showRecap() {
                 "Penerima: " + t.jumlah + " | Galon: " + t.galon + "<br>" +
                 "Status: " + (t.scannedAt ? "SUDAH DIPROSES" : "MENUNGGU SCAN") +
                 "<details style='margin-top:10px'><summary style='cursor:pointer;font-weight:bold'>LIHAT RINCIAN PENERIMA (" + records.length + ")</summary>" +
-                "<div style='overflow-x:auto;margin-top:8px'><table style='width:100%;border-collapse:collapse;font-size:12px'><thead><tr><th style='padding:7px'>No</th><th style='padding:7px'>Nama</th><th style='padding:7px'>Unit</th><th style='padding:7px'>Divisi</th><th style='padding:7px'>Galon</th></tr></thead><tbody>" + detailRows + "</tbody></table></div></details>" +
+                "<div style='overflow-x:auto;margin-top:8px'><table style='width:100%;min-width:620px;border-collapse:collapse;font-size:12px'><thead><tr><th style='padding:7px'>No</th><th style='padding:7px'>Nama</th><th style='padding:7px'>Unit</th><th style='padding:7px'>Divisi</th><th style='padding:7px'>Galon</th></tr></thead><tbody>" + detailRows + "</tbody></table></div></details>" +
                 "<button style='margin-top:10px' data-qr-id='" + escapeHtml(t.id) + "'>BUAT QR CODE</button></div>";
         }).join("");
         box.querySelectorAll("[data-qr-id]").forEach(button => {
