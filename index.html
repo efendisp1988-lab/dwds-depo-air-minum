@@ -491,9 +491,9 @@ function saveDeliveryLetter() {
         nomor,
         tanggal,
         recipients: names,
-        recipientRecords: names.map(n => { const r = importedRecipientRecords.find(x => x.nama.toLowerCase() === n.toLowerCase()); return { nama: n, unit: r ? r.unit : '', divisi: r ? r.divisi : '', galon: 1 }; }),
+        recipientRecords: names.map(n => { const r = importedRecipientRecords.find(x => x.nama.toLowerCase() === n.toLowerCase()); return { nama: n, unit: r ? r.unit : '', divisi: r ? r.divisi : '', galon: r && Number(r.galon) > 0 ? Number(r.galon) : 1 }; }),
         jumlah: names.length,
-        galon: names.length,
+        galon: names.reduce((sum,n) => { const r = importedRecipientRecords.find(x => x.nama.toLowerCase() === n.toLowerCase()); return sum + (r && Number(r.galon) > 0 ? Number(r.galon) : 1); }, 0),
         createdAt: new Date().toISOString(),
         createdBy: currentUser ? currentUser.username : "unknown"
     };
@@ -764,7 +764,8 @@ function stopCamera() {
 }
 
 async function decodeLetterPayload(text){
- let encoded=text.substring(6).replace(/-/g,"+").replace(/_/g,"/");
+ const payloadStart=text.startsWith("DWDS2U:")?7:6;
+ let encoded=text.substring(payloadStart).replace(/-/g,"+").replace(/_/g,"/");
  while(encoded.length%4)encoded+="=";
  const binary=atob(encoded),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
  let raw;
