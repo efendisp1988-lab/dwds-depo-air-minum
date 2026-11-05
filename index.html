@@ -162,7 +162,7 @@ footer {
         <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
         <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
-        <button class="secondary" onclick="showReportPage()">LAPORAN & PROFIL PERUSAHAAN</button>
+        <button class="secondary" onclick="document.getElementById('reportPage').classList.remove('hidden');document.getElementById('inputPage').classList.add('hidden');document.getElementById('scannerPage').classList.add('hidden');document.getElementById('recapPage').classList.add('hidden');">LAPORAN & PROFIL PERUSAHAAN</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
 
