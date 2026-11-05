@@ -246,82 +246,7 @@ footer {
     DWDS V1.0 | Depo Water Distribution System
 </footer>
 
-<script src="qrcode.min.js">
-function getReportProfile(){return JSON.parse(localStorage.getItem("dwds_report_profile")||"{}");}
-function showReportPage(){
- document.getElementById("reportPage").classList.remove("hidden");
- ["inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
- const p=getReportProfile();
- ["companyName","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{if(p[id]!==undefined)document.getElementById(id).value=p[id];});
- const defaults={signDepoTitle:"Petugas Depo",signKtuTitle:"KTU",signManagerTitle:"Manager"};
- Object.keys(defaults).forEach(id=>{if(!document.getElementById(id).value)document.getElementById(id).value=defaults[id];});
- const preview=document.getElementById("companyLogoPreview");if(p.logo){preview.src=p.logo;preview.classList.remove("hidden");}
- const today=localDateString();document.getElementById("reportStart").value=document.getElementById("reportStart").value||today;document.getElementById("reportEnd").value=document.getElementById("reportEnd").value||today;
- window.scrollTo({top:0,behavior:"smooth"});
-}
-function hideReportPage(){document.getElementById("reportPage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
-document.getElementById("companyLogoFile").addEventListener("change",function(){
- const file=this.files&&this.files[0];if(!file)return;
- if(!["image/png","image/jpeg"].includes(file.type)){alert("Gunakan logo PNG atau JPG.");this.value="";return;}
- if(file.size>3*1024*1024){alert("Ukuran logo maksimal 3 MB.");this.value="";return;}
- const reader=new FileReader();reader.onload=()=>{
-  const img=new Image();img.onload=()=>{
-   const scale=Math.min(600/img.width,600/img.height,1),canvas=document.createElement("canvas");
-   canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
-   canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
-   window.pendingCompanyLogo=canvas.toDataURL("image/png");
-   const preview=document.getElementById("companyLogoPreview");preview.src=window.pendingCompanyLogo;preview.classList.remove("hidden");
-  };img.src=reader.result;
- };reader.readAsDataURL(file);
-});
-function saveReportProfile(){
- const p=getReportProfile();
- ["companyName","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>p[id]=document.getElementById(id).value.trim());
- if(window.pendingCompanyLogo)p.logo=window.pendingCompanyLogo;
- try{localStorage.setItem("dwds_report_profile",JSON.stringify(p));window.pendingCompanyLogo=null;document.getElementById("reportMessage").innerText="Profil, logo, dan data penandatangan berhasil disimpan di perangkat ini.";}
- catch(e){document.getElementById("reportMessage").innerText="Gagal menyimpan. Coba gunakan logo dengan ukuran lebih kecil.";}
-}
-function getFilteredReportData(){
- const start=document.getElementById("reportStart").value,end=document.getElementById("reportEnd").value;
- if(!start||!end||start>end)throw new Error("Periksa tanggal mulai dan akhir laporan.");
- const data=getTransactions().filter(t=>t.scannedAt&&t.scannedAt.slice(0,10)>=start&&t.scannedAt.slice(0,10)<=end);
- return {start,end,data};
-}
-function getReportRows(data){
- const rows=[];
- data.forEach(t=>{
-  const people=t.recipientRecords||(t.recipients||[]).map(nama=>({nama:nama,unit:"",divisi:"",galon:1}));
-  people.forEach(r=>rows.push({"Tanggal Surat":t.tanggal,"Tanggal Distribusi":t.scannedAt.slice(0,10),"Jam Distribusi":new Date(t.scannedAt).toLocaleTimeString("id-ID"),"No. Surat Jalan":t.nomor,"Nama Penerima":r.nama,"Unit":r.unit||"","Divisi":r.divisi||"","Jumlah Galon":r.galon||1}));
- });
- return rows;
-}
-function exportReportExcel(){
- try{
-  saveReportProfile();const q=getFilteredReportData();if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
-  const p=getReportProfile(),rows=getReportRows(q.data),wb=XLSX.utils.book_new();
-  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]),0);
-  const summary=[["LAPORAN DISTRIBUSI AIR DEPO"],[p.companyName||""],[p.companyAddress||""],["Periode",q.start+" s.d. "+q.end],[],["Total Surat",q.data.length],["Total Penerima",rows.length],["Total Galon",total],[],Object.keys(rows[0])];
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary.concat(rows.map(r=>Object.values(r)))),"Laporan Distribusi");
-  const units={};rows.forEach(r=>{const k=r.Unit||"Tidak diisi";units[k]=(units[k]||0)+Number(r["Jumlah Galon"]);});
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Unit","Total Galon"],...Object.entries(units)]),"Rekap Unit");
-  XLSX.writeFile(wb,"Laporan-DWDS-"+q.start+"-"+q.end+".xlsx");
-  document.getElementById("reportMessage").innerText="Laporan Excel berhasil dibuat.";
- }catch(e){document.getElementById("reportMessage").innerText=e.message;}
-}
-function printReportPdf(){
- try{
-  saveReportProfile();const q=getFilteredReportData();if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
-  const p=getReportProfile(),rows=getReportRows(q.data),esc=s=>String(s==null?"":s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-  const keys=Object.keys(rows[0]),total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]),0);
-  const body=rows.map((r,i)=>"<tr><td>"+(i+1)+"</td>"+keys.map(k=>"<td>"+esc(r[k])+"</td>").join("")+"</tr>").join("");
-  const logo=p.logo?'<img src="'+p.logo+'" style="max-width:100px;max-height:80px">':"";
-  const sign=(label,name,title)=>'<div class="sign"><p>'+esc(label)+'</p><div class="space"></div><b>'+esc(name||"................................")+'</b><br>'+esc(title||label)+'</div>';
-  const html='<!doctype html><html><head><meta charset="utf-8"><title>Laporan DWDS</title><style>body{font-family:Arial;margin:24px;font-size:10px;color:#222}.head{display:flex;gap:15px;align-items:center;border-bottom:2px solid #176b46;padding-bottom:12px}table{width:100%;border-collapse:collapse;font-size:8px}td,th{border:1px solid #999;padding:5px}th{background:#e8f1ec}.closing{page-break-before:always;margin-top:35px}.signs{display:flex;justify-content:space-between;gap:15px;margin-top:30px}.sign{width:32%;text-align:center}.space{height:85px}@media print{button{display:none}}</style></head><body><div class="head">'+logo+'<div><h2>'+esc(p.companyName||"LAPORAN DISTRIBUSI AIR DEPO")+'</h2>'+esc(p.companyAddress||"")+'<h3>LAPORAN DISTRIBUSI AIR DEPO</h3></div></div><p>Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'</p><p>Total Surat: '+q.data.length+' | Total Penerima: '+rows.length+' | Total Galon: '+total+'</p><table><thead><tr><th>No</th>'+keys.map(k=>"<th>"+esc(k)+"</th>").join("")+'</tr></thead><tbody>'+body+'</tbody></table><div class="closing"><h3>HALAMAN PENUTUP</h3><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p><div class="signs">'+sign("Petugas Depo",p.signDepoName,p.signDepoTitle)+sign("Mengetahui, KTU",p.signKtuName,p.signKtuTitle)+sign("Menyetujui, Manager",p.signManagerName,p.signManagerTitle)+'</div></div><p style="text-align:center;margin-top:30px">Dokumen dibuat melalui DWDS - Depo Water Distribution System</p><button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>';
-  const w=window.open("","_blank");if(!w)throw new Error("Izinkan pop-up browser untuk membuka laporan.");w.document.open();w.document.write(html);w.document.close();document.getElementById("reportMessage").innerText="Pratinjau laporan terbuka. Pilih Cetak lalu Simpan sebagai PDF.";
- }catch(e){document.getElementById("reportMessage").innerText=e.message;}
-}
-
-</script>
+<script src="qrcode.min.js"></script>
 <script src="jsQR.js"></script>
 <script src="xlsx.full.min.js"></script>
 <script src="pdf.min.js"></script>
@@ -881,6 +806,82 @@ async function importRecipientFile(file) {
         msg.innerText = "File belum dapat dibaca: " + error.message;
     }
 }
+
+function getReportProfile(){return JSON.parse(localStorage.getItem("dwds_report_profile")||"{}");}
+function showReportPage(){
+ document.getElementById("reportPage").classList.remove("hidden");
+ ["inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+ const p=getReportProfile();
+ ["companyName","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{if(p[id]!==undefined)document.getElementById(id).value=p[id];});
+ const defaults={signDepoTitle:"Petugas Depo",signKtuTitle:"KTU",signManagerTitle:"Manager"};
+ Object.keys(defaults).forEach(id=>{if(!document.getElementById(id).value)document.getElementById(id).value=defaults[id];});
+ const preview=document.getElementById("companyLogoPreview");if(p.logo){preview.src=p.logo;preview.classList.remove("hidden");}
+ const today=localDateString();document.getElementById("reportStart").value=document.getElementById("reportStart").value||today;document.getElementById("reportEnd").value=document.getElementById("reportEnd").value||today;
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function hideReportPage(){document.getElementById("reportPage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
+document.getElementById("companyLogoFile").addEventListener("change",function(){
+ const file=this.files&&this.files[0];if(!file)return;
+ if(!["image/png","image/jpeg"].includes(file.type)){alert("Gunakan logo PNG atau JPG.");this.value="";return;}
+ if(file.size>3*1024*1024){alert("Ukuran logo maksimal 3 MB.");this.value="";return;}
+ const reader=new FileReader();reader.onload=()=>{
+  const img=new Image();img.onload=()=>{
+   const scale=Math.min(600/img.width,600/img.height,1),canvas=document.createElement("canvas");
+   canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+   canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+   window.pendingCompanyLogo=canvas.toDataURL("image/png");
+   const preview=document.getElementById("companyLogoPreview");preview.src=window.pendingCompanyLogo;preview.classList.remove("hidden");
+  };img.src=reader.result;
+ };reader.readAsDataURL(file);
+});
+function saveReportProfile(){
+ const p=getReportProfile();
+ ["companyName","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>p[id]=document.getElementById(id).value.trim());
+ if(window.pendingCompanyLogo)p.logo=window.pendingCompanyLogo;
+ try{localStorage.setItem("dwds_report_profile",JSON.stringify(p));window.pendingCompanyLogo=null;document.getElementById("reportMessage").innerText="Profil, logo, dan data penandatangan berhasil disimpan di perangkat ini.";}
+ catch(e){document.getElementById("reportMessage").innerText="Gagal menyimpan. Coba gunakan logo dengan ukuran lebih kecil.";}
+}
+function getFilteredReportData(){
+ const start=document.getElementById("reportStart").value,end=document.getElementById("reportEnd").value;
+ if(!start||!end||start>end)throw new Error("Periksa tanggal mulai dan akhir laporan.");
+ const data=getTransactions().filter(t=>t.scannedAt&&t.scannedAt.slice(0,10)>=start&&t.scannedAt.slice(0,10)<=end);
+ return {start,end,data};
+}
+function getReportRows(data){
+ const rows=[];
+ data.forEach(t=>{
+  const people=t.recipientRecords||(t.recipients||[]).map(nama=>({nama:nama,unit:"",divisi:"",galon:1}));
+  people.forEach(r=>rows.push({"Tanggal Surat":t.tanggal,"Tanggal Distribusi":t.scannedAt.slice(0,10),"Jam Distribusi":new Date(t.scannedAt).toLocaleTimeString("id-ID"),"No. Surat Jalan":t.nomor,"Nama Penerima":r.nama,"Unit":r.unit||"","Divisi":r.divisi||"","Jumlah Galon":r.galon||1}));
+ });
+ return rows;
+}
+function exportReportExcel(){
+ try{
+  saveReportProfile();const q=getFilteredReportData();if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
+  const p=getReportProfile(),rows=getReportRows(q.data),wb=XLSX.utils.book_new();
+  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]),0);
+  const summary=[["LAPORAN DISTRIBUSI AIR DEPO"],[p.companyName||""],[p.companyAddress||""],["Periode",q.start+" s.d. "+q.end],[],["Total Surat",q.data.length],["Total Penerima",rows.length],["Total Galon",total],[],Object.keys(rows[0])];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary.concat(rows.map(r=>Object.values(r)))),"Laporan Distribusi");
+  const units={};rows.forEach(r=>{const k=r.Unit||"Tidak diisi";units[k]=(units[k]||0)+Number(r["Jumlah Galon"]);});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Unit","Total Galon"],...Object.entries(units)]),"Rekap Unit");
+  XLSX.writeFile(wb,"Laporan-DWDS-"+q.start+"-"+q.end+".xlsx");
+  document.getElementById("reportMessage").innerText="Laporan Excel berhasil dibuat.";
+ }catch(e){document.getElementById("reportMessage").innerText=e.message;}
+}
+function printReportPdf(){
+ try{
+  saveReportProfile();const q=getFilteredReportData();if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
+  const p=getReportProfile(),rows=getReportRows(q.data),esc=s=>String(s==null?"":s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const keys=Object.keys(rows[0]),total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]),0);
+  const body=rows.map((r,i)=>"<tr><td>"+(i+1)+"</td>"+keys.map(k=>"<td>"+esc(r[k])+"</td>").join("")+"</tr>").join("");
+  const logo=p.logo?'<img src="'+p.logo+'" style="max-width:100px;max-height:80px">':"";
+  const sign=(label,name,title)=>'<div class="sign"><p>'+esc(label)+'</p><div class="space"></div><b>'+esc(name||"................................")+'</b><br>'+esc(title||label)+'</div>';
+  const html='<!doctype html><html><head><meta charset="utf-8"><title>Laporan DWDS</title><style>body{font-family:Arial;margin:24px;font-size:10px;color:#222}.head{display:flex;gap:15px;align-items:center;border-bottom:2px solid #176b46;padding-bottom:12px}table{width:100%;border-collapse:collapse;font-size:8px}td,th{border:1px solid #999;padding:5px}th{background:#e8f1ec}.closing{page-break-before:always;margin-top:35px}.signs{display:flex;justify-content:space-between;gap:15px;margin-top:30px}.sign{width:32%;text-align:center}.space{height:85px}@media print{button{display:none}}</style></head><body><div class="head">'+logo+'<div><h2>'+esc(p.companyName||"LAPORAN DISTRIBUSI AIR DEPO")+'</h2>'+esc(p.companyAddress||"")+'<h3>LAPORAN DISTRIBUSI AIR DEPO</h3></div></div><p>Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'</p><p>Total Surat: '+q.data.length+' | Total Penerima: '+rows.length+' | Total Galon: '+total+'</p><table><thead><tr><th>No</th>'+keys.map(k=>"<th>"+esc(k)+"</th>").join("")+'</tr></thead><tbody>'+body+'</tbody></table><div class="closing"><h3>HALAMAN PENUTUP</h3><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p><div class="signs">'+sign("Petugas Depo",p.signDepoName,p.signDepoTitle)+sign("Mengetahui, KTU",p.signKtuName,p.signKtuTitle)+sign("Menyetujui, Manager",p.signManagerName,p.signManagerTitle)+'</div></div><p style="text-align:center;margin-top:30px">Dokumen dibuat melalui DWDS - Depo Water Distribution System</p><button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>';
+  const w=window.open("","_blank");if(!w)throw new Error("Izinkan pop-up browser untuk membuka laporan.");w.document.open();w.document.write(html);w.document.close();document.getElementById("reportMessage").innerText="Pratinjau laporan terbuka. Pilih Cetak lalu Simpan sebagai PDF.";
+ }catch(e){document.getElementById("reportMessage").innerText=e.message;}
+}
+
+
 </script>
 
 </body>
