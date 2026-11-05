@@ -163,7 +163,8 @@ footer {
         <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
         <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
-        <button class="secondary" onclick="showReportPage()">LAPORAN & PROFIL PERUSAHAAN</button>
+        <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
+        <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
     <div class="card">
@@ -220,24 +221,31 @@ footer {
         <button class="secondary" onclick="hideRecap()">KEMBALI</button>
     </section>
 
-    <section id="reportPage" class="card hidden">
-        <h3>LAPORAN & PROFIL PERUSAHAAN</h3>
-        <p>Lengkapi profil perusahaan dan tiga pejabat penandatangan. Data tersimpan pada perangkat ini.</p>
-        <h4>PROFIL PERUSAHAAN</h4>
+    <section id="companyProfilePage" class="card hidden">
+        <h3>PROFIL PERUSAHAAN</h3>
+        <p>Pengaturan ini cukup diisi oleh admin atau penanggung jawab. Data akan digunakan otomatis pada laporan.</p>
         <label>Nama Perusahaan</label><input id="companyName" placeholder="Nama perusahaan">
         <label>Region</label><input id="companyRegion" placeholder="Contoh: Region Kubar 1">
         <label>Nama Unit</label><input id="companyUnit" placeholder="Nama unit/depo">
         <label>Alamat Perusahaan</label><textarea id="companyAddress" rows="2" placeholder="Alamat perusahaan"></textarea>
         <label>Logo Perusahaan (PNG/JPG)</label><input id="companyLogoFile" type="file" accept="image/png,image/jpeg">
         <img id="companyLogoPreview" class="hidden" style="max-width:130px;max-height:100px;object-fit:contain;margin-top:10px">
-        <button onclick="saveReportProfile()">SIMPAN PROFIL & PENANDATANGAN</button>
         <hr><h4>PENANDATANGAN LAPORAN</h4>
-        <p>Nama dan jabatan akan ditampilkan pada halaman penutup laporan PDF.</p>
+        <p>Nama dan jabatan akan ditampilkan pada laporan PDF.</p>
         <b>Petugas Depo</b><label>Nama</label><input id="signDepoName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signDepoTitle" value="Petugas Depo">
         <b>KTU</b><label>Nama</label><input id="signKtuName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signKtuTitle" value="KTU">
         <b>Manager</b><label>Nama</label><input id="signManagerName" placeholder="Nama lengkap"><label>Jabatan</label><input id="signManagerTitle" value="Manager">
-        <hr><h4>PERIODE LAPORAN</h4>
-        <label>Tanggal Mulai</label><input id="reportStart" type="date"><label>Tanggal Akhir</label><input id="reportEnd" type="date">
+        <button onclick="saveReportProfile()">SIMPAN PROFIL PERUSAHAAN</button>
+        <p id="profileMessage"></p>
+        <button class="secondary" onclick="hideCompanyProfilePage()">KEMBALI KE DASHBOARD</button>
+    </section>
+
+    <section id="reportPage" class="card hidden">
+        <h3>LAPORAN HARIAN</h3>
+        <p>Pilih periode laporan, kemudian unduh Excel dan simpan PDF untuk dikirim kepada KTU.</p>
+        <h4>PERIODE LAPORAN</h4>
+        <label>Tanggal Mulai</label><input id="reportStart" type="date">
+        <label>Tanggal Akhir</label><input id="reportEnd" type="date">
         <button onclick="exportReportExcel()">DOWNLOAD LAPORAN EXCEL</button>
         <button class="secondary" onclick="printReportPdf()">CETAK / SIMPAN LAPORAN PDF</button>
         <hr>
@@ -859,16 +867,26 @@ async function importRecipientFile(file) {
 }
 
 function getReportProfile(){return JSON.parse(localStorage.getItem("dwds_report_profile")||"{}");}
+function showCompanyProfilePage(){
+ document.getElementById("companyProfilePage").classList.remove("hidden");
+ ["reportPage","inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+ const p=getReportProfile();
+ ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{const el=document.getElementById(id);if(el&&p[id]!==undefined)el.value=p[id];});
+ const defaults={signDepoTitle:"Petugas Depo",signKtuTitle:"KTU",signManagerTitle:"Manager"};
+ Object.keys(defaults).forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=defaults[id];});
+ const preview=document.getElementById("companyLogoPreview");
+ if(p.logo){preview.src=p.logo;preview.classList.remove("hidden");}else{preview.removeAttribute("src");preview.classList.add("hidden");}
+ document.getElementById("profileMessage").innerText="";
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function hideCompanyProfilePage(){document.getElementById("companyProfilePage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
 function showReportPage(){
  document.getElementById("reportPage").classList.remove("hidden");
  updateDailyChecklist();
- ["inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
- const p=getReportProfile();
- ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{if(p[id]!==undefined)document.getElementById(id).value=p[id];});
- const defaults={signDepoTitle:"Petugas Depo",signKtuTitle:"KTU",signManagerTitle:"Manager"};
- Object.keys(defaults).forEach(id=>{if(!document.getElementById(id).value)document.getElementById(id).value=defaults[id];});
- const preview=document.getElementById("companyLogoPreview");if(p.logo){preview.src=p.logo;preview.classList.remove("hidden");}
- const today=localDateString();document.getElementById("reportStart").value=document.getElementById("reportStart").value||today;document.getElementById("reportEnd").value=document.getElementById("reportEnd").value||today;
+ ["companyProfilePage","inputPage","scannerPage","recapPage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+ const today=localDateString();
+ document.getElementById("reportStart").value=document.getElementById("reportStart").value||today;
+ document.getElementById("reportEnd").value=document.getElementById("reportEnd").value||today;
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function hideReportPage(){document.getElementById("reportPage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
@@ -888,10 +906,17 @@ document.getElementById("companyLogoFile").addEventListener("change",function(){
 });
 function saveReportProfile(){
  const p=getReportProfile();
- ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>p[id]=document.getElementById(id).value.trim());
+ ["companyName","companyRegion","companyUnit","companyAddress","signDepoName","signDepoTitle","signKtuName","signKtuTitle","signManagerName","signManagerTitle"].forEach(id=>{const el=document.getElementById(id);if(el)p[id]=el.value.trim();});
  if(window.pendingCompanyLogo)p.logo=window.pendingCompanyLogo;
- try{localStorage.setItem("dwds_report_profile",JSON.stringify(p));window.pendingCompanyLogo=null;document.getElementById("reportMessage").innerText="Profil, logo, dan data penandatangan berhasil disimpan di perangkat ini.";}
- catch(e){document.getElementById("reportMessage").innerText="Gagal menyimpan. Coba gunakan logo dengan ukuran lebih kecil.";}
+ try{
+  localStorage.setItem("dwds_report_profile",JSON.stringify(p));
+  window.pendingCompanyLogo=null;
+  const msg=document.getElementById("profileMessage");
+  if(msg)msg.innerText="Profil perusahaan dan penandatangan berhasil disimpan di perangkat ini.";
+ }catch(e){
+  const msg=document.getElementById("profileMessage");
+  if(msg)msg.innerText="Gagal menyimpan. Coba gunakan logo dengan ukuran lebih kecil.";
+ }
 }
 function getFilteredReportData(){
  const start=document.getElementById("reportStart").value,end=document.getElementById("reportEnd").value;
@@ -909,7 +934,6 @@ function getReportRows(data){
 }
 function exportReportExcel(){
  try{
-  saveReportProfile();
   const q=getFilteredReportData();
   if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
   const p=getReportProfile(),rows=getReportRows(q.data),wb=XLSX.utils.book_new();
@@ -945,7 +969,6 @@ function exportReportExcel(){
 }
 function printReportPdf(){
  try {
-  saveReportProfile();
   const q = getFilteredReportData();
   if (!q.data.length) throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
   const p = getReportProfile();
