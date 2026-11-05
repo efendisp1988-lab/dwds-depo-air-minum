@@ -1100,42 +1100,40 @@ function exportReportExcel(){
 }
 function printReportPdf(){
  try {
-  const q = getFilteredReportData();
-  if (!q.data.length) throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
-  const p = getReportProfile();
-  const rows = getReportRows(q.data);
-  const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
-  const keys = Object.keys(rows[0]);
-  const total = rows.reduce((sum,row) => sum + Number(row["Jumlah Galon"] || 0), 0);
-  const logo = p.logo ? '<img src="' + p.logo + '" style="max-width:60px;max-height:42px">' : "";
-  const sign = (label,name,title) => '<div class="sign"><p>' + esc(label) + '</p><div class="space"></div><b>' + esc(name || "................................") + '</b><br>' + esc(title || label) + '</div>';
-  const headers = "<tr><th>No</th>" + keys.map(key => "<th>" + esc(key) + "</th>").join("") + "</tr>";
-  const pageSize = 35;
-  const pages = [];
-  for (let start=0; start<rows.length; start+=pageSize) {
-   const chunk=rows.slice(start,start+pageSize);
-   const body=chunk.map((row,index)=>"<tr><td>"+(start+index+1)+"</td>"+keys.map(key=>"<td>"+esc(row[key])+"</td>").join("")+"</tr>").join("");
-   const first=start===0;
-   const last=start+pageSize>=rows.length;
-   pages.push('<section class="report-page'+(last?' last-page':'')+'">'+
-    (first?'<div class="head">'+logo+'<div><h2>'+esc(p.companyName||"LAPORAN DISTRIBUSI AIR DEPO")+'</h2>'+esc(p.companyAddress||"")+'<h3>LAPORAN DISTRIBUSI AIR DEPO</h3></div></div><div class="summary"><p>Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'</p><p>Total Surat: '+q.data.length+' | Total Penerima: '+rows.length+' | Total Galon: '+total+'</p></div>':'<div class="continued"><b>LAPORAN DISTRIBUSI AIR DEPO — LANJUTAN</b><span>Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'</span></div>')+
-    '<table><thead>'+headers+'</thead><tbody>'+body+'</tbody></table>'+
-    (last?'<div class="closing"><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p><div class="signs">'+sign("Petugas Depo",p.signDepoName,p.signDepoTitle)+sign("Mengetahui, KTU",p.signKtuName,p.signKtuTitle)+sign("Menyetujui, Manager",p.signManagerName,p.signManagerTitle)+'</div><p class="foot">Dokumen dibuat melalui DWDS - Depo Water Distribution System</p></div>':'')+
-   '</section>');
+  const q=getFilteredReportData();
+  if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
+  const p=getReportProfile(), rows=getReportRows(q.data);
+  const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]||0),0);
+  const cols=[
+   ["Tanggal Distribusi","Tanggal Distribusi"],["No. Surat Jalan","No. Surat Jalan"],
+   ["NIK/NIP","NIK/NIP"],["Nama Penerima","Nama Penerima"],
+   ["Unit","Unit"],["Divisi","Divisi"],["Jumlah Galon","Jumlah Galon"]
+  ];
+  const pageSize=42, pages=[];
+  for(let start=0;start<rows.length;start+=pageSize){
+   const chunk=rows.slice(start,start+pageSize), last=start+pageSize>=rows.length, first=start===0;
+   const body=chunk.map((r,i)=>"<tr><td>"+(start+i+1)+"</td>"+cols.map(([k])=>"<td>"+esc(r[k])+"</td>").join("")+"</tr>").join("");
+   pages.push('<section class="page'+(last?' last':'')+'">'+
+    (first?'<header>'+(p.logo?'<img src="'+p.logo+'">':'')+'<div><h2>'+esc(p.companyName||"LAPORAN DISTRIBUSI AIR DEPO")+'</h2><div>'+esc(p.companyAddress||"")+'</div><h3>LAPORAN DISTRIBUSI AIR DEPO</h3></div></header><div class="summary">Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'<br>Total Surat: '+q.data.length+' | Total Penerima: '+rows.length+' | Total Galon: '+total+'</div>':'<div class="continued">LAPORAN DISTRIBUSI AIR DEPO — LANJUTAN | Periode: '+esc(q.start)+' s.d. '+esc(q.end)+'</div>')+
+    '<table><colgroup><col style="width:4%"><col style="width:12%"><col style="width:14%"><col style="width:12%"><col style="width:29%"><col style="width:10%"><col style="width:11%"><col style="width:8%"></colgroup><thead><tr><th>No</th>'+cols.map(([k])=>'<th>'+esc(k)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table>'+
+    (last?'<div class="closing"><p>Demikian laporan distribusi air depo ini dibuat sebagai dokumentasi dan bahan pemeriksaan.</p><div class="signs">'+
+     '<div class="sign">Petugas Depo<div class="space"></div><b>'+esc(p.signDepoName||"................................")+'</b><br>'+esc(p.signDepoTitle||"Petugas Depo")+'</div>'+
+     '<div class="sign">Mengetahui, KTU<div class="space"></div><b>'+esc(p.signKtuName||"................................")+'</b><br>'+esc(p.signKtuTitle||"KTU")+'</div>'+
+     '<div class="sign">Menyetujui, Manager<div class="space"></div><b>'+esc(p.signManagerName||"................................")+'</b><br>'+esc(p.signManagerTitle||"Manager")+'</div></div><div class="foot">Dokumen dibuat melalui DWDS - Depo Water Distribution System</div></div>':'')+
+    '</section>');
   }
   const html='<!doctype html><html><head><meta charset="utf-8"><title>Laporan DWDS</title><style>'+
-   '@page{size:A4 landscape;margin:5mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif;color:#222}body{font-size:7px;line-height:1.1}'+
-   '.report-page{height:200mm;min-height:200mm;position:relative;page-break-after:always;break-after:page;overflow:hidden;padding:0}.report-page:last-of-type{page-break-after:auto;break-after:auto}'+
-   '.head{display:flex;align-items:center;gap:7px;border-bottom:1px solid #176b46;padding-bottom:3px;margin-bottom:4px}.head h2{font-size:12px;margin:0 0 2px}.head h3{font-size:9px;margin:2px 0}.summary{margin-bottom:4px}.summary p{margin:2px 0}.continued{display:flex;justify-content:space-between;border-bottom:1px solid #777;padding:3px 0;margin-bottom:4px;font-size:8px}'+
-   'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.8px}td,th{border:1px solid #888;padding:1px 2px;line-height:1.05;vertical-align:middle;overflow-wrap:anywhere}th{background:#e8f1ec}thead{display:table-header-group}tbody tr{height:4.4mm;break-inside:avoid;page-break-inside:avoid}'+
-   'th:nth-child(1),td:nth-child(1){width:3%;text-align:center}th:nth-child(2),td:nth-child(2){width:8%}th:nth-child(3),td:nth-child(3){width:9%}th:nth-child(4),td:nth-child(4){width:7%}th:nth-child(5),td:nth-child(5){width:12%}th:nth-child(6),td:nth-child(6){width:8%}th:nth-child(7),td:nth-child(7){width:28%}th:nth-child(8),td:nth-child(8){width:7%}th:nth-child(9),td:nth-child(9){width:10%}th:nth-child(10),td:nth-child(10){width:8%}'+
-   '.closing{margin-top:5px;border-top:1px solid #aaa;padding-top:4px;break-inside:avoid}.closing p{margin:2px 0}.signs{display:flex;justify-content:space-between;gap:8px;margin-top:5px}.sign{width:32%;text-align:center;font-size:7px}.space{height:25px}.foot{text-align:center;font-size:6px;margin-top:4px}'+
-   '@media screen{body{background:#eee}.report-page{background:#fff;margin:8px auto;padding:0 2mm;max-width:297mm;box-shadow:0 1px 5px #aaa}}@media print{button{display:none}}'+
+   '@page{size:A4 portrait;margin:9mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif;color:#222}body{font-size:8pt;line-height:1.2}'+
+   '.page{width:100%;min-height:279mm;position:relative;page-break-after:always;break-after:page;padding:0}.page:last-child{page-break-after:auto;break-after:auto}'+
+   'header{display:flex;align-items:center;gap:9px;border-bottom:1.5px solid #176b46;padding-bottom:6px;margin-bottom:7px;font-size:8pt}header img{max-width:65px;max-height:48px;object-fit:contain}h2{font-size:14pt;margin:0 0 3px}h3{font-size:10pt;margin:4px 0 0}.summary{font-size:8pt;margin-bottom:7px;line-height:1.5}.continued{font-size:9pt;font-weight:bold;border-bottom:1px solid #888;padding:4px 0;margin-bottom:6px}'+
+   'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.5pt}th,td{border:1px solid #777;padding:3px 3px;line-height:1.18;vertical-align:middle;overflow-wrap:anywhere}th{background:#e8f1ec;text-align:center}tbody tr{height:5.5mm;break-inside:avoid;page-break-inside:avoid}td:first-child{text-align:center}'+
+   '.closing{margin-top:8px;border-top:1px solid #aaa;padding-top:6px;font-size:8pt;break-inside:avoid}.closing p{margin:2px 0}.signs{display:flex;justify-content:space-between;gap:8px;margin-top:8px}.sign{width:32%;text-align:center;font-size:8pt}.space{height:25px}.foot{text-align:center;font-size:7pt;margin-top:7px}'+
+   '@media screen{body{background:#eee}.page{background:#fff;max-width:210mm;margin:10px auto;padding:0 2mm;box-shadow:0 1px 5px #aaa}}@media print{button{display:none}}'+
    '</style></head><body>'+pages.join("")+'<button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>';
-  const w=window.open("","_blank");
-  if(!w)throw new Error("Izinkan pop-up browser untuk membuka laporan.");
+  const w=window.open("","_blank");if(!w)throw new Error("Izinkan pop-up browser untuk membuka laporan.");
   w.document.open();w.document.write(html);w.document.close();
-  document.getElementById("reportMessage").innerText="Pratinjau laporan dibuat dalam halaman terukur, maksimal 35 penerima per halaman.";
+  document.getElementById("reportMessage").innerText="Laporan portrait A4 siap dicetak dengan teks tajam dan kolom lebih ringkas.";
  }catch(e){document.getElementById("reportMessage").innerText=e.message;}
 }
 
