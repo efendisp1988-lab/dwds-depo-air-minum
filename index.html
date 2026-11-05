@@ -1491,14 +1491,7 @@ function printReportPdf(){
    'table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:7.5pt}th,td{border:1px solid #777;padding:3px 3px;line-height:1.18;vertical-align:middle;overflow-wrap:anywhere}th{background:#e8f1ec;text-align:center}tbody tr{height:5.5mm;break-inside:avoid;page-break-inside:avoid}td:first-child{text-align:center}'+
    '.closing{margin-top:8px;border-top:1px solid #aaa;padding-top:6px;font-size:8pt;break-inside:avoid}.closing p{margin:2px 0}.signs{display:flex;justify-content:space-between;gap:8px;margin-top:8px}.sign{width:32%;text-align:center;font-size:8pt}.space{height:25px}.foot{text-align:center;font-size:7pt;margin-top:7px}'+
    '@media screen{body{background:#eee}.page{background:#fff;max-width:210mm;margin:10px auto;padding:0 2mm;box-shadow:0 1px 5px #aaa}}@media print{button{display:none}}'+
-   '</style></head><body>'+pages.join("")+'<button onclick="window.print()">CETAK / SIMPAN PDF</button><script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker.register("./sw.js").catch(function (err) { console.log("DWDS offline cache:", err); });
-  });
-}
-</script>
-</body></html>';
+   '</style></head><body>'+pages.join("")+'<button onclick="window.print()">CETAK / SIMPAN PDF</button></body></html>';
   const w=window.open("","_blank");if(!w)throw new Error("Izinkan pop-up browser untuk membuka laporan.");
   w.document.open();w.document.write(html);w.document.close();
   document.getElementById("reportMessage").innerText="Laporan portrait A4 siap dicetak dengan teks tajam dan kolom lebih ringkas.";
@@ -1507,5 +1500,12 @@ if ("serviceWorker" in navigator) {
 
 </script>
 
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function (err) { console.log("DWDS offline cache:", err); });
+  });
+}
+</script>
 </body>
 </html>
