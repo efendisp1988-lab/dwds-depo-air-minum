@@ -234,6 +234,7 @@ let activeQr = null;
 let cameraStream = null;
 let scanFrame = null;
 let lastScanText = "";
+let importedRecipientRecords = [];
 
 function localDateString() {
     const d = new Date();
@@ -344,6 +345,7 @@ function saveDeliveryLetter() {
         nomor,
         tanggal,
         recipients: names,
+        recipientRecords: names.map(n => { const r = importedRecipientRecords.find(x => x.nama.toLowerCase() === n.toLowerCase()); return { nama: n, unit: r ? r.unit : '', divisi: r ? r.divisi : '', galon: 1 }; }),
         jumlah: names.length,
         galon: names.length,
         createdAt: new Date().toISOString(),
@@ -355,6 +357,9 @@ function saveDeliveryLetter() {
 
     document.getElementById("suratNomor").value = "";
     document.getElementById("recipientNames").value = "";
+    importedRecipientRecords = [];
+    document.getElementById("recipientFile").value = "";
+    document.getElementById("importMessage").innerText = "";
     document.getElementById("recipientCount").innerText = "Jumlah penerima: 0";
     message.innerText = "Berhasil disimpan: " + names.length + " penerima dan " + names.length + " galon.";
     updateDashboard();
@@ -717,10 +722,12 @@ async function importRecipientFile(file) {
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
             if (!rows.length) throw new Error("File Excel tidak berisi data.");
             const first = rows[0].map(v => String(v).trim().toLowerCase());
-            let col = first.findIndex(v => /^(nama|nama penerima|penerima|name)$/.test(v));
-            if (col < 0) col = 0;
-            const start = first.some(v => /^(no|nomor|nama|nama penerima|penerima|name)$/.test(v)) ? 1 : 0;
-            text = rows.slice(start).map(row => row[col]).filter(v => String(v).trim() !== "").join("\n");
+            const nameCol = first.findIndex(v => /^(nama|nama penerima|penerima|name)$/.test(v));
+            const unitCol = first.findIndex(v => /^(unit|nama unit)$/.test(v));
+            const divCol = first.findIndex(v => /^(divisi|bagian|departemen)$/.test(v));
+            if (nameCol < 0) throw new Error("Kolom Nama Penerima tidak ditemukan. Gunakan judul kolom Nama Penerima, Unit, dan Divisi.");
+            importedRecipientRecords = rows.slice(1).map(row => ({nama:String(row[nameCol] || "").trim(),unit:unitCol >= 0 ? String(row[unitCol] || "").trim() : "",divisi:divCol >= 0 ? String(row[divCol] || "").trim() : ""})).filter(r => r.nama);
+            text = importedRecipientRecords.map(r => r.nama).join("\n");
         } else if (ext === "pdf") {
             text = await readPdfText(file);
         } else if (ext === "docx") {
@@ -745,7 +752,7 @@ async function importRecipientFile(file) {
         const combined = existing ? existing + "\n" + imported.join("\n") : imported.join("\n");
         document.getElementById("recipientNames").value = combined;
         updateRecipientCount();
-        msg.innerText = "Berhasil mengambil " + imported.length + " baris dari " + file.name + ". Periksa daftar nama, hapus judul/teks yang tidak diperlukan, lalu simpan surat jalan.";
+        msg.innerText = "Berhasil membaca " + imported.length + " penerima dari " + file.name + ". " + (importedRecipientRecords.length ? "Data Unit dan Divisi ikut disimpan." : "Untuk membawa Unit dan Divisi, gunakan Excel dengan kolom Nama Penerima, Unit, dan Divisi.") + " Periksa daftar sebelum disimpan.";
     } catch (error) {
         msg.innerText = "File belum dapat dibaca: " + error.message;
     }
