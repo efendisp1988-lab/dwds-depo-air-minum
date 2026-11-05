@@ -859,15 +859,38 @@ function getReportRows(data){
 }
 function exportReportExcel(){
  try{
-  saveReportProfile();const q=getFilteredReportData();if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
+  saveReportProfile();
+  const q=getFilteredReportData();
+  if(!q.data.length)throw new Error("Tidak ada transaksi selesai pada periode tersebut.");
   const p=getReportProfile(),rows=getReportRows(q.data),wb=XLSX.utils.book_new();
-  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]),0);
-  const summary=[["LAPORAN DISTRIBUSI AIR DEPO"],[p.companyName||""],["Region",p.companyRegion||""],["Nama Unit",p.companyUnit||""],[p.companyAddress||""],["Periode",q.start+" s.d. "+q.end],[],["Total Surat",q.data.length],["Total Penerima",rows.length],["Total Galon",total],[],Object.keys(rows[0])];
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary.concat(rows.map(r=>Object.values(r)))),"Laporan Distribusi");
-  const units={};rows.forEach(r=>{const k=r.Unit||"Tidak diisi";units[k]=(units[k]||0)+Number(r["Jumlah Galon"]);});
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Unit","Total Galon"],...Object.entries(units)]),"Rekap Unit");
+  const total=rows.reduce((s,r)=>s+Number(r["Jumlah Galon"]||0),0);
+  const ws=XLSX.utils.aoa_to_sheet([
+   ["LAPORAN DISTRIBUSI AIR DEPO"],
+   [p.companyName||""],
+   ["Region",p.companyRegion||""],
+   ["Nama Unit",p.companyUnit||""],
+   ["Alamat",p.companyAddress||""],
+   ["Periode",q.start+" s.d. "+q.end],
+   [],
+   ["RINGKASAN"],
+   ["Total Surat",q.data.length],
+   ["Total Penerima",rows.length],
+   ["Total Galon",total],
+   [],
+   ["No.","Tanggal Surat","Tanggal Distribusi","Jam Distribusi","No. Surat Jalan","Nama Penerima","Unit","Divisi","Jumlah Galon"],
+   ...rows.map((r,i)=>[i+1,r["Tanggal Surat"],r["Tanggal Distribusi"],r["Jam Distribusi"],r["No. Surat Jalan"],r["Nama Penerima"],r.Unit,r.Divisi,r["Jumlah Galon"]])
+  ]);
+  ws["!cols"]=[{wch:7},{wch:16},{wch:19},{wch:16},{wch:24},{wch:32},{wch:18},{wch:18},{wch:14}];
+  ws["!freeze"]={xSplit:0,ySplit:12};
+  ws["!autofilter"]={ref:"A12:I"+(12+rows.length)};
+  XLSX.utils.book_append_sheet(wb,ws,"Laporan Distribusi");
+  const unitMap={};rows.forEach(r=>{const k=r.Unit||"Tidak diisi";unitMap[k]=(unitMap[k]||0)+Number(r["Jumlah Galon"]||0);});
+  const unitRows=Object.entries(unitMap);
+  const unitWs=XLSX.utils.aoa_to_sheet([["REKAP DISTRIBUSI BERDASARKAN UNIT"],["Periode",q.start+" s.d. "+q.end],[],["No.","Nama Unit","Total Penerima","Total Galon"],...unitRows.map(([unit,galon],i)=>[i+1,unit,rows.filter(r=>(r.Unit||"Tidak diisi")===unit).length,galon])]);
+  unitWs["!cols"]=[{wch:8},{wch:28},{wch:20},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,unitWs,"Rekap Unit");
   XLSX.writeFile(wb,"Laporan-DWDS-"+q.start+"-"+q.end+".xlsx");
-  document.getElementById("reportMessage").innerText="Laporan Excel berhasil dibuat.";
+  document.getElementById("reportMessage").innerText="Laporan Excel berhasil dibuat. Kolom sudah dipisah dan lebar disesuaikan.";
  }catch(e){document.getElementById("reportMessage").innerText=e.message;}
 }
 function printReportPdf(){
