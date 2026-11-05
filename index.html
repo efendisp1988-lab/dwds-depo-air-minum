@@ -183,6 +183,14 @@ footer {
     <section id="recapPage" class="card hidden">
         <h3>DAFTAR SURAT JALAN</h3>
         <div id="recapList">Belum ada transaksi.</div>
+        <div id="qrDisplay" class="hidden" style="margin-top:18px;padding:16px;border:1px solid #ddd;border-radius:10px;text-align:center">
+            <h3>QR CODE SURAT JALAN</h3>
+            <p id="qrLetterInfo"></p>
+            <div id="qrcode" style="display:flex;justify-content:center;margin:15px auto;background:white;padding:10px"></div>
+            <p style="font-size:13px">QR ini berisi kode referensi surat jalan. Daftar penerima tetap tersimpan di perangkat ini.</p>
+            <button onclick="downloadQr()">DOWNLOAD QR CODE</button>
+            <button class="secondary" onclick="closeQr()">TUTUP QR</button>
+        </div>
         <button class="secondary" onclick="hideRecap()">KEMBALI</button>
     </section>
 
@@ -198,8 +206,10 @@ footer {
     DWDS V1.0 | Depo Water Distribution System
 </footer>
 
+<script src="qrcode.min.js"></script>
 <script>
 let currentUser = null;
+let activeQr = null;
 
 function localDateString() {
     const d = new Date();
@@ -338,6 +348,7 @@ function showRecap() {
             "<b>" + escapeHtml(t.nomor) + "</b><br>" +
             "Tanggal: " + escapeHtml(t.tanggal) + "<br>" +
             "Penerima: " + t.jumlah + " | Galon: " + t.galon +
+            "<button style='margin-top:10px' onclick=\\"generateQr('" + escapeHtml(t.id) + "')\\">BUAT QR CODE</button>" +
             "</div>"
         ).join("");
     }
@@ -349,6 +360,59 @@ function showRecap() {
 
 function hideRecap() {
     document.getElementById("recapPage").classList.add("hidden");
+    closeQr();
+}
+
+function generateQr(id) {
+    const transactions = getTransactions();
+    const item = transactions.find(t => t.id === id);
+    if (!item) {
+        alert("Data surat jalan tidak ditemukan di perangkat ini.");
+        return;
+    }
+    if (typeof QRCode === "undefined") {
+        alert("Komponen QR belum berhasil dimuat. Muat ulang aplikasi dan coba lagi.");
+        return;
+    }
+
+    activeQr = item;
+    document.getElementById("qrLetterInfo").innerText =
+        item.nomor + " | " + item.tanggal + " | " + item.jumlah + " penerima";
+    document.getElementById("qrcode").innerHTML = "";
+    document.getElementById("qrDisplay").classList.remove("hidden");
+
+    // QR hanya membawa ID referensi agar tetap ringkas meskipun daftar berisi banyak penerima.
+    new QRCode(document.getElementById("qrcode"), {
+        text: "DWDS1:" + item.id,
+        width: 240,
+        height: 240,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+    });
+}
+
+function closeQr() {
+    document.getElementById("qrDisplay").classList.add("hidden");
+    document.getElementById("qrcode").innerHTML = "";
+    activeQr = null;
+}
+
+function downloadQr() {
+    const holder = document.getElementById("qrcode");
+    const img = holder.querySelector("img");
+    const canvas = holder.querySelector("canvas");
+    let url = img ? img.src : (canvas ? canvas.toDataURL("image/png") : "");
+    if (!url) {
+        alert("QR belum siap. Coba beberapa saat lagi.");
+        return;
+    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (activeQr ? activeQr.nomor : "DWDS") + "-QR.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 }
 
 function escapeHtml(value) {
