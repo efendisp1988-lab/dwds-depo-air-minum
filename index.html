@@ -348,9 +348,12 @@ function showRecap() {
             "<b>" + escapeHtml(t.nomor) + "</b><br>" +
             "Tanggal: " + escapeHtml(t.tanggal) + "<br>" +
             "Penerima: " + t.jumlah + " | Galon: " + t.galon +
-            "<button style='margin-top:10px' onclick=\\"generateQr('" + escapeHtml(t.id) + "')\\">BUAT QR CODE</button>" +
+            "<button style='margin-top:10px' data-qr-id='" + escapeHtml(t.id) + "'>BUAT QR CODE</button>" +
             "</div>"
         ).join("");
+        box.querySelectorAll("[data-qr-id]").forEach(button => {
+            button.addEventListener("click", () => generateQr(button.getAttribute("data-qr-id")));
+        });
     }
 
     document.getElementById("recapPage").classList.remove("hidden");
