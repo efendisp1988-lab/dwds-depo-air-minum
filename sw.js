@@ -1,18 +1,46 @@
-const CACHE_NAME = "dwds-shell-v3";
-const FILES = ["./", "./index.html", "./manifest.json", "./qrcode.min.js", "./jsQR.js", "./xlsx.full.min.js", "./pdf.min.js", "./icon.svg"];
-self.addEventListener("install", function(event) {
-  event.waitUntil(caches.open(CACHE_NAME).then(function(cache) { return cache.addAll(FILES); }).then(function() { return self.skipWaiting(); }));
+const CACHE_NAME = "dwds-shell-v4";
+const FILES = [
+  "./", "./index.html", "./pc.html", "./manifest.json", "./icon.svg",
+  "./dwds-background.png", "./dwds-background-desktop.jpg",
+  "./qrcode.min.js", "./jsQR.js", "./xlsx.full.min.js", "./pdf.min.js"
+];
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(FILES))
+      .then(() => self.skipWaiting())
+  );
 });
-self.addEventListener("activate", function(event) {
-  event.waitUntil(caches.keys().then(function(keys) { return Promise.all(keys.filter(function(k) { return k.indexOf("dwds-shell-") === 0 && k !== CACHE_NAME; }).map(function(k) { return caches.delete(k); })); }).then(function() { return self.clients.claim(); }));
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key.startsWith("dwds-shell-") && key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
 });
-self.addEventListener("fetch", function(event) {
+self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
-  var url = new URL(event.request.url);
+  const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).then(function(response) { var copy = response.clone(); caches.open(CACHE_NAME).then(function(cache) { cache.put("./index.html", copy); }); return response; }).catch(function() { return caches.match("./index.html"); }));
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(async () => (await caches.match(event.request)) || (await caches.match("./index.html")))
+    );
     return;
   }
-  event.respondWith(caches.match(event.request).then(function(cached) { return cached || fetch(event.request).then(function(response) { if (response && response.ok) { var copy = response.clone(); caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, copy); }); } return response; }); }));
+  event.respondWith(
+    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+      }
+      return response;
+    }))
+  );
 });
