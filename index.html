@@ -310,7 +310,7 @@ footer {
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
         <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
         <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
-        <button class="danger hidden" id="dataManagementButton" onclick="showDataManagement()">KELOLA / HAPUS LAPORAN (ADMIN)</button>
+        <button class="danger hidden" id="dataManagementButton" onclick="showDataManagement()">KELOLA / HAPUS LAPORAN (ADMIN / KTU)</button>
         <button class="danger hidden" id="accountManagementButton" onclick="showAdminAccounts()">KELOLA AKUN (ADMIN)</button>
         <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
     </div>
@@ -403,7 +403,7 @@ footer {
 
     <section id="dataManagementPage" class="card hidden">
         <h3>PENGELOLAAN DATA & LAPORAN</h3>
-        <p>Hanya Administrator. Hapus laporan berarti menghapus transaksi sumber dari perangkat ini. Profil perusahaan dan akun pengguna tidak ikut terhapus.</p>
+        <p>Administrator dan KTU dapat menghapus laporan terpilih. Reset seluruh data operasional hanya dapat dilakukan Administrator. Penghapusan berlaku pada perangkat ini.</p>
         <div class="stat"><span>Total surat tersimpan</span><b id="manageTotalLetters">0</b></div>
         <div class="stat"><span>Total checklist harian</span><b id="manageTotalChecks">0</b></div>
         <button onclick="downloadDataBackup()">UNDUH BACKUP DATA (JSON)</button>
@@ -414,10 +414,12 @@ footer {
         <div id="manageTransactionList"></div>
         <label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input id="backupConfirmed" type="checkbox" style="width:auto"> Saya sudah mengunduh dan menyimpan backup terbaru.</label>
         <button class="danger" onclick="deleteSelectedReports()">HAPUS LAPORAN TERPILIH</button>
+        <div id="adminOnlyResetSection">
         <hr>
         <h4>RESET DATA OPERASIONAL</h4>
         <p>Menghapus seluruh transaksi dan checklist harian di perangkat ini. Akun pengguna, profil perusahaan, logo, dan pengaturan tetap dipertahankan.</p>
         <button class="danger" onclick="resetOperationalData()">RESET SELURUH DATA OPERASIONAL</button>
+        </div>
         <p id="manageMessage" style="font-size:13px"></p>
         <button class="secondary" onclick="hideDataManagement()">KEMBALI KE DASHBOARD</button>
     </section>
@@ -586,11 +588,13 @@ function getTransactions() {
     return JSON.parse(localStorage.getItem("dwds_transactions") || "[]");
 }
 function showDataManagement() {
-    if (!currentUser || String(currentUser.role || "").toLowerCase() !== "administrator") {
-        alert("Akses ditolak. Modul ini hanya untuk Administrator.");
+    if (!currentUser || !["administrator","ktu"].includes(String(currentUser.role || "").trim().toLowerCase())) {
+        alert("Akses ditolak. Modul ini hanya untuk Administrator atau KTU.");
         return;
     }
     document.getElementById("dataManagementPage").classList.remove("hidden");
+    const resetSection=document.getElementById("adminOnlyResetSection");
+    if(resetSection)resetSection.classList.toggle("hidden",String(currentUser.role||"").trim().toLowerCase()!=="administrator");
     renderDataManagement();
     window.scrollTo({top:document.getElementById("dataManagementPage").offsetTop,behavior:"smooth"});
 }
@@ -621,7 +625,7 @@ function downloadDataBackup() {
     document.getElementById("backupStatus").innerText="File backup disiapkan. Pastikan file JSON benar-benar tersimpan sebelum mencentang konfirmasi.";
 }
 function deleteSelectedReports() {
-    if(!currentUser||String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Akses ditolak.");return;}
+    if(!currentUser||!["administrator","ktu"].includes(String(currentUser.role||"").trim().toLowerCase())){alert("Akses ditolak. Hanya Administrator atau KTU.");return;}
     if(localStorage.getItem("dwds_status")==="OPEN"){alert("Tutup operasional terlebih dahulu sebelum menghapus laporan.");return;}
     const selected=[...document.querySelectorAll(".manage-report-check:checked")].map(x=>x.value);
     if(!selected.length){alert("Pilih minimal satu laporan.");return;}
@@ -666,7 +670,7 @@ function login() {
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("userInfo").innerText = user.username + " | " + user.role;
         const manageButton = document.getElementById("dataManagementButton");
-        if (manageButton) manageButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
+        if (manageButton) manageButton.classList.toggle("hidden", !["administrator","ktu"].includes(String(user.role || "").trim().toLowerCase()));
         const accountButton = document.getElementById("accountManagementButton");
         if (accountButton) accountButton.classList.toggle("hidden", String(user.role || "").toLowerCase() !== "administrator");
         updateDashboard();
