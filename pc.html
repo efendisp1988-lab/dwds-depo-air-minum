@@ -265,6 +265,20 @@ footer {
   body.dwds-pc:has(#loginPage:not(.hidden)) .login-card {max-width:680px;}
 }
 
+/* PC: pertahankan rasio asli gambar landscape, jangan diregangkan */
+@media (min-width:700px) {
+  body.dwds-pc:has(#loginPage:not(.hidden)) {
+    background-color:#079bc4;
+    background-image:
+      linear-gradient(90deg, #079bc4 0%, #bceefa 50%, #079bc4 100%),
+      url("dwds-background-desktop.jpg");
+    background-position:center center, center center;
+    background-repeat:no-repeat, no-repeat;
+    background-size:100% 100%, contain;
+    background-attachment:fixed, fixed;
+  }
+}
+
 </style>
 </head>
 
