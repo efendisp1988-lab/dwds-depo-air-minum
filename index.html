@@ -703,7 +703,7 @@ function adminCreateAccount() {
     if(users.some(x=>String(x.username).toLowerCase()===username.toLowerCase())){msg.innerText="Username sudah digunakan.";return;}
     if(password.length<8){msg.innerText="Password minimal 8 karakter.";return;}
     if(password!==confirmPassword){msg.innerText="Konfirmasi password tidak sama.";return;}
-    if(!/^\\d{6}$/.test(pin)){msg.innerText="PIN harus tepat 6 angka.";return;}
+    if(!/^\d{6}$/.test(pin)){msg.innerText="PIN harus tepat 6 angka.";return;}
     users.push({username,password,role,recoveryPin:pin,active:true,createdAt:new Date().toISOString()});
     localStorage.setItem("dwds_users",JSON.stringify(users));
     ["adminNewUsername","adminNewPassword","adminNewConfirm","adminNewPin"].forEach(id=>document.getElementById(id).value="");
