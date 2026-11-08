@@ -232,20 +232,66 @@ button.danger {
     border-bottom: 1px solid #eee;
 }
 
-/* Panel panduan hak akses DWDS */
-.role-guide-card{border:1px solid #b9e4f5;background:linear-gradient(145deg,#ffffff,#eaf8ff);border-radius:16px;padding:16px;margin:0 0 15px;box-shadow:0 4px 14px #0878aa12}
-.role-guide-head{display:flex;align-items:center;gap:10px;color:#124b78;font-weight:800;font-size:17px}
-.role-guide-badge{display:inline-block;padding:5px 12px;border-radius:20px;background:#0878c4;color:#fff;font-size:12px;font-weight:700}
+/* DWDS Dashboard V2 - responsif HP dan laptop */
+.dashboard-v2{display:grid;grid-template-columns:minmax(0,1fr);gap:15px}
+.dashboard-v2>.card{margin:0;min-width:0;border:1px solid #e3f0f4;border-radius:17px;box-shadow:0 5px 18px #145b7510;padding:18px}
+.dashboard-welcome{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(120deg,#087eae,#20b5c7);color:#fff;border:0!important}
+.dashboard-welcome-copy{min-width:0}
+.dashboard-eyebrow{font-size:10px;letter-spacing:1.3px;opacity:.88;font-weight:700}
+.dashboard-welcome h3{font-size:21px;margin:7px 0;color:#fff}
+.dashboard-user{font-weight:700;margin:6px 0;font-size:14px}
+.dashboard-status{display:inline-block;margin:4px 0 0;padding:6px 11px;border-radius:20px;background:#ffffff25;color:#fff;font-size:12px;font-weight:700}
+.dashboard-welcome-icon{font-size:48px;opacity:.95;flex-shrink:0}
+.dashboard-section-title{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.dashboard-section-title>span{font-size:21px}
+.dashboard-section-title h3{margin:0;font-size:17px;color:#145477}
+.dashboard-helper{font-size:13px;color:#597783;margin:0 0 13px;line-height:1.5}
+.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.summary-item{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:3px 7px;padding:11px 8px;background:#effaff;border:1px solid #d9f0f7;border-radius:12px;min-width:0}
+.summary-icon{font-size:19px;grid-row:span 2}
+.summary-item span:not(.summary-icon){font-size:11px;color:#54717d;line-height:1.25}
+.summary-item b{font-size:22px;color:#087eae}
+.module-group-label{font-size:11px;font-weight:800;letter-spacing:.7px;color:#64818c;margin:13px 0 8px}
+.module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.module-action{width:100%;min-width:0;min-height:76px;margin:0;padding:11px 9px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;text-align:left;border:1px solid #d9edf3;border-radius:12px;background:#f3fbfe;color:#155878;box-shadow:none}
+.module-action>span{font-size:19px;line-height:1.1}
+.module-action b{font-size:12px;line-height:1.3}
+.module-action small{font-size:10px;font-weight:500;opacity:.8}
+.module-action.module-primary{background:#e4f8fc;border-color:#9ddce9;color:#087eae}
+.module-action.module-danger{background:#fff3f2;border-color:#f0d0cd;color:#a83333}
+.module-action.module-close{background:#b73535;border-color:#b73535;color:#fff}
+.module-action:active{transform:scale(.99)}
+.role-guide-card{border:1px solid #b9e4f5!important;background:linear-gradient(145deg,#ffffff,#effaff)}
+.role-guide-badge{display:inline-block;padding:6px 13px;border-radius:20px;background:#0878c4;color:#fff;font-size:11px;font-weight:800;letter-spacing:.4px}
 .role-guide-card details{margin-top:10px}
 .role-guide-card summary{cursor:pointer;color:#0878aa;font-weight:700;padding:8px 0}
-.role-guide-card ul{margin:8px 0 4px;padding-left:22px;line-height:1.65;font-size:14px}
-.role-guide-note{font-size:12px;color:#426779;margin:8px 0 0}
+.role-guide-card ul{margin:8px 0 4px;padding-left:22px;line-height:1.6;font-size:13px}
+.role-guide-note{font-size:11px;color:#426779;margin:10px 0 0;line-height:1.5}
+.checklist-open-report{margin-top:12px}
 @media(min-width:700px){
-  body:not(:has(#loginPage:not(.hidden))) .container{max-width:1180px}
-  #dashboard{display:block}
-  #dashboard>.role-guide-card{max-width:100%}
-  #dashboard>.card{border-radius:15px}
+  .dashboard-v2{grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:18px}
+  .dashboard-v2>.dashboard-welcome{grid-column:1/-1}
+  .dashboard-v2>.dashboard-summary{grid-column:1/-1}
+  .dashboard-v2>.dashboard-modules{grid-column:1}
+  .dashboard-v2>.dashboard-checklist{grid-column:2}
+  .dashboard-v2>.role-guide-card{grid-column:2;grid-row:3}
+  .dashboard-v2>.dashboard-checklist{grid-row:4}
+  .dashboard-v2>.dashboard-modules{grid-row:3}
+  .summary-item{padding:15px}
+  .summary-item span:not(.summary-icon){font-size:12px}
+  .module-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+  .module-action{min-height:86px;padding:13px}
 }
+@media(max-width:380px){
+  .dashboard-v2>.card{padding:14px}
+  .summary-grid{gap:5px}
+  .summary-item{padding:8px 5px;gap:3px 4px}
+  .summary-icon{font-size:16px}
+  .summary-item span:not(.summary-icon){font-size:10px}
+  .summary-item b{font-size:19px}
+  .module-action b{font-size:11px}
+}
+
 footer {
     text-align: center;
     padding: 20px;
@@ -322,61 +368,63 @@ footer {
 </section>
 <div class="login-account-links"><p style="text-align:center;font-size:12px;color:#245b7c">Akun dibuat dan dikelola oleh Administrator. Jika lupa username atau password, hubungi Administrator.</p></div>
 
-<section id="dashboard" class="hidden">
+<section id="dashboard" class="hidden dashboard-v2">
 
-    <div class="card">
-        <h3>SELAMAT DATANG</h3>
-        <p id="userInfo"></p>
-        <p id="operationalStatus">Status: BELUM OPEN</p>
-</div>
+    <div class="card dashboard-welcome" id="welcomeCard">
+        <div class="dashboard-welcome-copy">
+            <span class="dashboard-eyebrow">DEPO WATER DISTRIBUTION SYSTEM</span>
+            <h3>SELAMAT DATANG DI DWDS</h3>
+            <p id="userInfo" class="dashboard-user"></p>
+            <p id="operationalStatus" class="dashboard-status">Status: BELUM OPEN</p>
+        </div>
+        <div class="dashboard-welcome-icon" aria-hidden="true">💧</div>
+    </div>
 
-    <div class="role-guide-card" id="roleGuideCard">
-        <div class="role-guide-head"><span aria-hidden="true">📘</span><span>PANDUAN & HAK AKSES DWDS</span></div>
-        <p style="margin:8px 0;color:#426779;font-size:13px">Panduan singkat berdasarkan peran akun yang sedang digunakan.</p>
+    <div class="card dashboard-summary" id="summaryCard">
+        <div class="dashboard-section-title"><span>📊</span><h3>RINGKASAN HARI INI</h3></div>
+        <div class="summary-grid">
+            <div class="summary-item"><span class="summary-icon">📄</span><span>Total Surat</span><b id="totalSurat">0</b></div>
+            <div class="summary-item"><span class="summary-icon">👥</span><span>Total Penerima</span><b id="totalPenerima">0</b></div>
+            <div class="summary-item"><span class="summary-icon">💧</span><span>Total Galon</span><b id="totalGalon">0</b></div>
+        </div>
+    </div>
+
+    <div class="card dashboard-modules" id="moduleCard">
+        <div class="dashboard-section-title"><span>🧭</span><h3>MENU UTAMA</h3></div>
+        <p class="dashboard-helper">Pilih modul sesuai kegiatan yang akan dilakukan.</p>
+        <div class="module-group-label">OPERASIONAL & TRANSAKSI</div>
+        <div class="module-grid">
+            <button class="module-action module-primary" onclick="openOperational()"><span>▶️</span><b>OPEN OPERASIONAL</b></button>
+            <button class="module-action" onclick="showInputForm()"><span>📝</span><b>INPUT SURAT JALAN</b></button>
+            <button class="module-action" onclick="showScanner()"><span>📷</span><b>SCAN QR CODE</b></button>
+            <button class="module-action" onclick="showRecap()"><span>📋</span><b>REKAP TRANSAKSI</b></button>
+        </div>
+        <div class="module-group-label">ADMINISTRASI & PELAPORAN</div>
+        <div class="module-grid">
+            <button class="module-action" onclick="showCompanyProfilePage()"><span>🏢</span><b>PROFIL PERUSAHAAN</b></button>
+            <button class="module-action" onclick="showReportPage()"><span>📑</span><b>LAPORAN HARIAN</b></button>
+            <button class="module-action module-danger hidden" id="dataManagementButton" onclick="showDataManagement()"><span>🗂️</span><b>KELOLA / HAPUS LAPORAN</b><small>Administrator / KTU</small></button>
+            <button class="module-action module-danger hidden" id="accountManagementButton" onclick="showAdminAccounts()"><span>👤</span><b>KELOLA AKUN</b><small>Administrator</small></button>
+            <button class="module-action module-close" onclick="closeOperational()"><span>⏹️</span><b>CLOSE OPERASIONAL</b></button>
+        </div>
+    </div>
+
+    <div class="card dashboard-checklist" id="checklistCard">
+        <div class="dashboard-section-title"><span>☑️</span><h3>CHECKLIST PENYELESAIAN HARIAN</h3></div>
+        <p class="dashboard-helper">Pastikan laporan kegiatan hari ini sudah disimpan dan dikirim kepada KTU.</p>
+        <div id="dailyChecklist">Memuat status...</div>
+        <button class="secondary checklist-open-report" onclick="showReportPage()">BUKA LAPORAN HARIAN</button>
+    </div>
+
+    <div class="card role-guide-card" id="roleGuideCard">
+        <div class="dashboard-section-title"><span>📘</span><h3>PANDUAN & HAK AKSES DWDS</h3></div>
+        <p class="dashboard-helper">Panduan singkat berdasarkan peran akun yang sedang digunakan.</p>
         <div><span class="role-guide-badge" id="roleGuideBadge">Pengguna</span></div>
         <details>
             <summary>Lihat tugas dan hak akses Anda</summary>
             <div id="roleGuideContent" aria-live="polite"></div>
         </details>
         <p class="role-guide-note">Catatan: penghapusan laporan hanya dapat dilakukan setelah operasional CLOSE. Reset data operasional hanya untuk Administrator.</p>
-    </div>
-
-    <div class="card">
-        <h3>RINGKASAN HARI INI</h3>
-
-        <div class="stat">
-            <span>Total Surat</span>
-            <b id="totalSurat">0</b>
-        </div>
-
-        <div class="stat">
-            <span>Total Penerima</span>
-            <b id="totalPenerima">0</b>
-        </div>
-
-        <div class="stat">
-            <span>Total Galon</span>
-            <b id="totalGalon">0</b>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3>OPERASIONAL DEPO</h3>
-        <button onclick="openOperational()">OPEN OPERASIONAL</button>
-        <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
-        <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
-        <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
-        <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
-        <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
-        <button class="danger hidden" id="dataManagementButton" onclick="showDataManagement()">KELOLA / HAPUS LAPORAN (ADMIN / KTU)</button>
-        <button class="danger hidden" id="accountManagementButton" onclick="showAdminAccounts()">KELOLA AKUN (ADMIN)</button>
-        <button class="danger" onclick="closeOperational()">CLOSE OPERASIONAL</button>
-    </div>
-    <div class="card">
-        <h3>CHECKLIST PENYELESAIAN HARIAN</h3>
-        <p style="font-size:13px">Pastikan laporan kegiatan hari ini sudah disimpan dan dikirim kepada KTU.</p>
-        <div id="dailyChecklist">Memuat status...</div>
-        <button class="secondary" onclick="showReportPage()">BUKA LAPORAN HARIAN</button>
     </div>
 
     <section id="adminAccountsPage" class="card hidden">
