@@ -349,7 +349,7 @@ footer {
  .dashboard-account>span{font-size:22px}
  .dashboard-account b,.dashboard-account small{display:block;max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .dashboard-account b{font-size:11px}.dashboard-account small{font-size:9px;opacity:.85}
- .dashboard-welcome{min-height:150px;position:relative;overflow:hidden;background:linear-gradient(90deg,#063e83eF,#087db7a8),url('dwds-background.png') center 65%/cover!important;color:#fff!important;border:0!important;display:flex;align-items:flex-end;padding:20px!important}
+ .dashboard-welcome{min-height:150px;position:relative;overflow:hidden;background:linear-gradient(90deg,#063e83d9,#087db780),url('dwds-background.png') center 88%/cover!important;color:#fff!important;border:0!important;display:flex;align-items:flex-end;padding:20px!important}
  .dashboard-welcome:after{content:"💧";position:absolute;right:18px;top:17px;font-size:54px;opacity:.75}
  .dashboard-welcome h3{color:#fff!important;font-size:22px;margin:5px 0}
  .dashboard-welcome .dashboard-eyebrow{font-size:9px;letter-spacing:1px}
@@ -1159,7 +1159,7 @@ function updateDashboard() {
     const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
     document.getElementById("operationalStatus").innerText = "Status: " + status;
     const summaryStatus=document.getElementById("summaryOperationalStatus");
-    if(summaryStatus){summaryStatus.innerText=status;summaryStatus.style.color=status==="OPEN"?"#13834d":"#a33";}
+    if(summaryStatus){summaryStatus.innerText=status;summaryStatus.style.color=status==="OPEN"?"#13834d":"#b4232f";const statusIcon=summaryStatus.parentElement.querySelector(".summary-icon");if(statusIcon)statusIcon.textContent=status==="OPEN"?"🟢":"🔴";}
 
     const data = getTransactions();
     const today = localDateString();
