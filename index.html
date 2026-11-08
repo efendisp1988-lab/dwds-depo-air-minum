@@ -571,6 +571,14 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
  .module-action.module-recap>span, .module-action.module-profile>span { width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:15px; background:#ffffffb8; font-size:30px !important; box-shadow:0 3px 8px #173b571c; filter:drop-shadow(0 1px 1px #ffffff); }
 }
 
+
+/* DWDS V2.2 - ikon identitas peran akun */
+.account-role-icon{width:42px;height:42px;min-width:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#07549b;border:2px solid #d8f3ff;box-shadow:0 2px 7px #002b5538;font-size:23px;line-height:1;}
+.account-role-text{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:0;}
+#dashboardAccount{display:flex;align-items:center;gap:9px;}
+#dashboardAccount small{display:block;}
+@media(max-width:699px){.account-role-icon{width:38px;height:38px;min-width:38px;font-size:21px;}}
+
 </style>
 </head>
 
@@ -923,7 +931,7 @@ function login() {
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("userInfo").innerText = user.username + " | " + user.role;
         const accountBox=document.getElementById("dashboardAccount");
-        if(accountBox) accountBox.innerHTML="<b>"+escapeHtml(user.username)+"</b><small>"+escapeHtml(user.role)+"</small>";
+        if(accountBox) { const roleKey=String(user.role||"").trim().toLowerCase(); const roleIcon=roleKey==="administrator"?"🛡️":roleKey==="ktu"?"💼":"👷"; accountBox.innerHTML='<span class="account-role-icon" aria-hidden="true">'+roleIcon+'</span><span class="account-role-text"><b>'+escapeHtml(user.username)+'</b><small>'+escapeHtml(user.role)+'</small></span>'; }
         updateRoleGuide(user);
         const manageButton = document.getElementById("dataManagementButton");
         if (manageButton) manageButton.classList.toggle("hidden", !["administrator","ktu"].includes(String(user.role || "").trim().toLowerCase()));
