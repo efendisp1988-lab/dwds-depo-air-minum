@@ -306,6 +306,35 @@ footer {
     color: #777;
     font-size: 12px;
 }
+
+/* Mobile dashboard V2 refinement */
+.dashboard-v2{padding-bottom:88px}
+.module-action{min-height:88px;align-items:center;text-align:center;justify-content:center}
+.module-action>span{font-size:25px}
+.module-action b{text-align:center;font-size:12px}
+.module-action.module-excel{background:linear-gradient(145deg,#e5f8ec,#d2f3df);border-color:#9ed8b2;color:#176b39}
+.module-action.module-word{background:linear-gradient(145deg,#e9f3ff,#dbeaff);border-color:#b7d4f4;color:#15589b}
+.module-action.module-qr{background:linear-gradient(145deg,#fff8dc,#ffedb0);border-color:#f4d77a;color:#775400}
+.module-action.module-scan{background:linear-gradient(145deg,#f0eaff,#e2d7ff);border-color:#c7b6f3;color:#5532a0}
+.module-action.module-report{background:linear-gradient(145deg,#e1fbf8,#c9f3ed);border-color:#9bded5;color:#08766d}
+.module-action.module-checklist{background:linear-gradient(145deg,#edf3f8,#dce7f0);border-color:#c1d1df;color:#34556d}
+.mobile-bottom-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;position:fixed;z-index:1000;left:0;right:0;bottom:0;padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#063d83,#0756a7);box-shadow:0 -5px 18px #123b2a24}
+.mobile-bottom-nav button{width:100%;margin:0;padding:5px 1px;background:transparent;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:10px;font-size:10px;min-width:0}
+.mobile-bottom-nav button span{font-size:23px;line-height:1.1}
+.mobile-bottom-nav button b{font-size:10px;white-space:nowrap}
+.mobile-bottom-nav button:active{background:#ffffff25}
+@media(min-width:700px){
+ .mobile-bottom-nav{position:static;grid-column:1/-1;border-radius:14px;margin-top:4px;padding:10px;box-shadow:none}
+ .mobile-bottom-nav button{flex-direction:row;gap:7px;font-size:12px}
+ .mobile-bottom-nav button span{font-size:19px}
+ .dashboard-v2{padding-bottom:10px}
+}
+@media(max-width:380px){
+ .module-grid{gap:7px}
+ .module-action{min-height:78px;padding:8px 5px}
+ .mobile-bottom-nav button b{font-size:9px}
+}
+
 </style>
 </head>
 
@@ -365,13 +394,14 @@ footer {
         <div class="module-grid">
             <button class="module-action module-primary" onclick="openOperational()"><span>▶️</span><b>OPEN OPERASIONAL</b></button>
             <button class="module-action" onclick="showInputForm()"><span>📝</span><b>INPUT SURAT JALAN</b></button>
-            <button class="module-action" onclick="showScanner()"><span>📷</span><b>SCAN QR CODE</b></button>
+            <button class="module-action module-excel" onclick="openExcelImport()"><span>📊</span><b>IMPORT EXCEL</b></button>
+            <button class="module-action module-word" onclick="showInputForm()"><span>📄</span><b>IMPORT WORD / PDF</b><small>Format impor sesuai dukungan sistem</small></button>
+            <button class="module-action module-qr" onclick="openQrManager()"><span>▦</span><b>BUAT QR CODE</b></button>
+            <button class="module-action module-scan" onclick="showScanner()"><span>📷</span><b>SCAN QR CODE</b></button>
             <button class="module-action" onclick="showRecap()"><span>📋</span><b>REKAP TRANSAKSI</b></button>
-        </div>
-        <div class="module-group-label">ADMINISTRASI & PELAPORAN</div>
-        <div class="module-grid">
+            <button class="module-action module-report" onclick="showReportPage()"><span>📈</span><b>LAPORAN HARIAN</b></button>
+            <button class="module-action module-checklist" onclick="goToChecklist()"><span>☑️</span><b>CHECKLIST HARIAN</b></button>
             <button class="module-action" onclick="showCompanyProfilePage()"><span>🏢</span><b>PROFIL PERUSAHAAN</b></button>
-            <button class="module-action" onclick="showReportPage()"><span>📑</span><b>LAPORAN HARIAN</b></button>
             <button class="module-action module-danger hidden" id="dataManagementButton" onclick="showDataManagement()"><span>🗂️</span><b>KELOLA / HAPUS LAPORAN</b><small>Administrator / KTU</small></button>
             <button class="module-action module-danger hidden" id="accountManagementButton" onclick="showAdminAccounts()"><span>👤</span><b>KELOLA AKUN</b><small>Administrator</small></button>
             <button class="module-action module-close" onclick="closeOperational()"><span>⏹️</span><b>CLOSE OPERASIONAL</b></button>
@@ -395,6 +425,14 @@ footer {
         </details>
         <p class="role-guide-note">Catatan: penghapusan laporan hanya dapat dilakukan setelah operasional CLOSE. Reset data operasional hanya untuk Administrator.</p>
     </div>
+
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigasi utama">
+        <button onclick="goDashboardHome()"><span>⌂</span><b>Beranda</b></button>
+        <button onclick="showRecap()"><span>▤</span><b>Rekap</b></button>
+        <button onclick="showReportPage()"><span>▥</span><b>Laporan</b></button>
+        <button onclick="showCompanyProfilePage()"><span>⚙</span><b>Pengaturan</b></button>
+        <button onclick="goToGuide()"><span>▣</span><b>Panduan</b></button>
+    </nav>
 
     <section id="adminAccountsPage" class="card hidden">
         <h3>KELOLA AKUN PENGGUNA</h3>
@@ -1060,6 +1098,25 @@ function updateRoleGuide(user) {
     content.innerHTML="<ul>"+items.map(item=>"<li>"+item+"</li>").join("")+"</ul>";
 }
  
+function openExcelImport(){
+    showInputForm();
+    setTimeout(()=>{const el=document.getElementById("recipientFile");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus();}},250);
+}
+function openQrManager(){
+    showRecap();
+    setTimeout(()=>{const el=document.getElementById("recapList");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});},100);
+}
+function goToChecklist(){
+    const el=document.getElementById("checklistCard");
+    if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function goToGuide(){
+    const el=document.getElementById("roleGuideCard");
+    if(el){el.scrollIntoView({behavior:"smooth",block:"start"});const d=el.querySelector("details");if(d)d.open=true;}
+}
+function goDashboardHome(){
+    window.scrollTo({top:0,behavior:"smooth"});
+}
 function updateDashboard() {
     const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
     document.getElementById("operationalStatus").innerText = "Status: " + status;
