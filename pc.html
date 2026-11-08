@@ -1115,7 +1115,8 @@ function updateDashboard() {
     if(openButton){openButton.classList.toggle("hidden",isOpen);const label=openButton.querySelector("b");if(label)label.textContent="OPEN OPERASIONAL";}
     if(closeButton){closeButton.classList.toggle("hidden",!isOpen);const label=closeButton.querySelector("b");if(label)label.textContent="CLOSE OPERASIONAL";}
 
-    document.getElementById("operationalStatus").innerText = "Status: " + status;
+    const legacyStatus=document.getElementById("operationalStatus");
+    if(legacyStatus) legacyStatus.innerText = "Status: " + status;
 
     const data = getTransactions();
     const today = localDateString();
