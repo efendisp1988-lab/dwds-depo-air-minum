@@ -232,6 +232,20 @@ button.danger {
     border-bottom: 1px solid #eee;
 }
 
+/* Panel panduan hak akses DWDS */
+.role-guide-card{border:1px solid #b9e4f5;background:linear-gradient(145deg,#ffffff,#eaf8ff);border-radius:16px;padding:16px;margin:0 0 15px;box-shadow:0 4px 14px #0878aa12}
+.role-guide-head{display:flex;align-items:center;gap:10px;color:#124b78;font-weight:800;font-size:17px}
+.role-guide-badge{display:inline-block;padding:5px 12px;border-radius:20px;background:#0878c4;color:#fff;font-size:12px;font-weight:700}
+.role-guide-card details{margin-top:10px}
+.role-guide-card summary{cursor:pointer;color:#0878aa;font-weight:700;padding:8px 0}
+.role-guide-card ul{margin:8px 0 4px;padding-left:22px;line-height:1.65;font-size:14px}
+.role-guide-note{font-size:12px;color:#426779;margin:8px 0 0}
+@media(min-width:700px){
+  body:not(:has(#loginPage:not(.hidden))) .container{max-width:1180px}
+  #dashboard{display:block}
+  #dashboard>.role-guide-card{max-width:100%}
+  #dashboard>.card{border-radius:15px}
+}
 footer {
     text-align: center;
     padding: 20px;
@@ -315,6 +329,17 @@ footer {
         <p id="userInfo"></p>
         <p id="operationalStatus">Status: BELUM OPEN</p>
 </div>
+
+    <div class="role-guide-card" id="roleGuideCard">
+        <div class="role-guide-head"><span aria-hidden="true">📘</span><span>PANDUAN & HAK AKSES DWDS</span></div>
+        <p style="margin:8px 0;color:#426779;font-size:13px">Panduan singkat berdasarkan peran akun yang sedang digunakan.</p>
+        <div><span class="role-guide-badge" id="roleGuideBadge">Pengguna</span></div>
+        <details>
+            <summary>Lihat tugas dan hak akses Anda</summary>
+            <div id="roleGuideContent" aria-live="polite"></div>
+        </details>
+        <p class="role-guide-note">Catatan: penghapusan laporan hanya dapat dilakukan setelah operasional CLOSE. Reset data operasional hanya untuk Administrator.</p>
+    </div>
 
     <div class="card">
         <h3>RINGKASAN HARI INI</h3>
@@ -604,6 +629,7 @@ function login() {
         document.getElementById("loginPage").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("userInfo").innerText = user.username + " | " + user.role;
+        updateRoleGuide(user);
         const manageButton = document.getElementById("dataManagementButton");
         if (manageButton) manageButton.classList.toggle("hidden", !["administrator","ktu"].includes(String(user.role || "").trim().toLowerCase()));
         const accountButton = document.getElementById("accountManagementButton");
@@ -974,6 +1000,49 @@ function updateDailyChecklist() {
     if (report) report.innerHTML = html + "<p>Tanggal checklist: " + displayDate(localDateString()) + "</p>";
 }
 
+function updateRoleGuide(user) {
+    const role=String((user&&user.role)||"").trim().toLowerCase();
+    const badge=document.getElementById("roleGuideBadge");
+    const content=document.getElementById("roleGuideContent");
+    if(!badge||!content)return;
+    let title="Pengguna";
+    let items=[];
+    if(role==="administrator"){
+      title="ADMINISTRATOR";
+      items=[
+        "Mengelola seluruh modul dan pengaturan DWDS.",
+        "Input / import Surat Jalan serta membuat QR Code.",
+        "Memantau scan QR, rekap transaksi, dan laporan harian.",
+        "Mengelola profil perusahaan dan akun pengguna.",
+        "Menghapus laporan tertentu setelah operasional CLOSE.",
+        "Melakukan backup dan reset data operasional."
+      ];
+    } else if(role==="ktu"){
+      title="KTU";
+      items=[
+        "Input / import Surat Jalan dan membuat QR Code.",
+        "Memantau rekap transaksi dan status distribusi.",
+        "Mengunduh laporan Excel serta mencetak / menyimpan PDF.",
+        "Mengisi dan memeriksa checklist harian.",
+        "Melakukan backup dan menghapus laporan tertentu setelah operasional CLOSE.",
+        "Tidak memiliki akses manajemen akun dan reset seluruh data."
+      ];
+    } else if(role==="petugas depo"||role==="operator depo"||role==="operator"){
+      title="OPERATOR DEPO";
+      items=[
+        "Membuka dan menutup operasional depo.",
+        "Memindai QR Code Surat Jalan saat distribusi.",
+        "Memeriksa status distribusi dan rekap transaksi.",
+        "Tidak memiliki akses menghapus laporan, mengelola akun, atau reset data."
+      ];
+    } else {
+      title=String((user&&user.role)||"Pengguna").toUpperCase();
+      items=["Gunakan modul sesuai kewenangan yang diberikan Administrator."];
+    }
+    badge.textContent=title;
+    content.innerHTML="<ul>"+items.map(item=>"<li>"+item+"</li>").join("")+"</ul>";
+}
+ 
 function updateDashboard() {
     const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
     document.getElementById("operationalStatus").innerText = "Status: " + status;
