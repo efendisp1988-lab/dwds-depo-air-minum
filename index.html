@@ -557,6 +557,12 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
   .dashboard-logout small { display:none !important; }
 }
 
+
+/* Logout ditempatkan di bagian paling bawah dashboard, bukan di appbar. */
+@media (max-width:699px) { .dashboard-appbar { grid-template-columns:34px minmax(0,1fr) auto !important; } }
+.dashboard-logout-bottom { grid-column:1 / -1; width:100%; display:flex; justify-content:center; padding:8px 0 18px; }
+.dashboard-logout-bottom button { width:min(100%,420px); min-height:52px; border:0; border-radius:14px; background:linear-gradient(135deg,#d52c35,#a91425); color:#fff; font-size:15px; font-weight:800; letter-spacing:.5px; box-shadow:0 4px 12px #a9142530; }
+
 </style>
 </head>
 
@@ -594,7 +600,7 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
         <button class="dashboard-menu-jump" type="button" onclick="document.getElementById('moduleCard').scrollIntoView({behavior:'smooth',block:'start'})" aria-label="Lompat ke menu utama">☰</button>
         <div class="dashboard-brand"><span class="brand-drop">💧</span><div><b>DWDS</b><small>DEPOT WATER DISTRIBUTION SYSTEM</small></div></div>
         <div class="dashboard-account"><span>👤</span><div id="dashboardAccount"><b>Pengguna</b><small>DWDS</small></div></div>
-        <button class="dashboard-logout" type="button" onclick="logout()" aria-label="Logout">↪ <small>Keluar</small></button>
+        
     </div>
     <div class="card dashboard-welcome" id="welcomeCard">
         <div class="dashboard-welcome-copy">
@@ -651,6 +657,8 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
         </details>
         <p class="role-guide-note">Catatan: penghapusan laporan hanya dapat dilakukan setelah operasional CLOSE. Reset data operasional hanya untuk Administrator.</p>
     </div>
+
+    <div class="dashboard-logout-bottom"><button type="button" onclick="logout()" aria-label="Logout">↪ &nbsp; LOGOUT / KELUAR</button></div>
 
     <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigasi utama">
         <button onclick="goDashboardHome()"><span>⌂</span><b>Beranda</b></button>
