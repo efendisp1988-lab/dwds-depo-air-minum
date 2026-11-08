@@ -563,6 +563,14 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
 .dashboard-logout-bottom { grid-column:1 / -1; width:100%; display:flex; justify-content:center; padding:8px 0 18px; }
 .dashboard-logout-bottom button { width:min(100%,420px); min-height:52px; border:0; border-radius:14px; background:linear-gradient(135deg,#d52c35,#a91425); color:#fff; font-size:15px; font-weight:800; letter-spacing:.5px; box-shadow:0 4px 12px #a9142530; }
 
+
+/* DWDS V2.2 - penyegaran visual dua kartu modul; handler tetap sama. */
+@media (max-width:699px) {
+ .module-action.module-recap { background:linear-gradient(145deg,#fff0dc,#ffd7a8) !important; border:1px solid #f0bd7e !important; color:#8a4b12 !important; }
+ .module-action.module-profile { background:linear-gradient(145deg,#e8e4ff,#cfc8ff) !important; border:1px solid #b5a9ed !important; color:#493b91 !important; }
+ .module-action.module-recap>span, .module-action.module-profile>span { width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:15px; background:#ffffffb8; font-size:30px !important; box-shadow:0 3px 8px #173b571c; filter:drop-shadow(0 1px 1px #ffffff); }
+}
+
 </style>
 </head>
 
@@ -630,10 +638,10 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
             <button class="module-action module-excel" onclick="openExcelImport()"><span>📊</span><b>IMPORT EXCEL</b></button>
             <button class="module-action module-qr" onclick="openQrManager()"><span>▦</span><b>BUAT QR CODE</b></button>
             <button class="module-action module-scan" onclick="showScanner()"><span>📷</span><b>SCAN QR CODE</b></button>
-            <button class="module-action" onclick="showRecap()"><span>📋</span><b>REKAP TRANSAKSI</b></button>
+            <button class="module-action module-recap" onclick="showRecap()"><span>🧾</span><b>REKAP TRANSAKSI</b></button>
             <button class="module-action module-report" onclick="showReportPage()"><span>📈</span><b>LAPORAN HARIAN</b></button>
             <button class="module-action module-checklist" onclick="goToChecklist()"><span>☑️</span><b>CHECKLIST HARIAN</b></button>
-            <button class="module-action" onclick="showCompanyProfilePage()"><span>🏢</span><b>PROFIL PERUSAHAAN</b></button>
+            <button class="module-action module-profile" onclick="showCompanyProfilePage()"><span>🏬</span><b>PROFIL PERUSAHAAN</b></button>
             <button class="module-action module-danger hidden" id="dataManagementButton" onclick="showDataManagement()"><span>🗂️</span><b>KELOLA / HAPUS LAPORAN</b><small>Administrator / KTU</small></button>
             <button class="module-action module-danger hidden" id="accountManagementButton" onclick="showAdminAccounts()"><span>👤</span><b>KELOLA AKUN</b><small>Administrator</small></button>
             <button class="module-action module-close" onclick="closeOperational()"><span>⏹️</span><b>CLOSE OPERASIONAL</b></button>
