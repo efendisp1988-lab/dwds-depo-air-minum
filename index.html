@@ -306,7 +306,6 @@ footer {
         <button onclick="openOperational()">OPEN OPERASIONAL</button>
         <button class="secondary" onclick="showInputForm()">INPUT SURAT JALAN</button>
         <button class="secondary" onclick="showScanner()">SCAN QR CODE</button>
-        <button class="secondary" onclick="showOcrPage()">FOTO SURAT JALAN (UJI OCR)</button>
         <button class="secondary" onclick="showRecap()">REKAP TRANSAKSI</button>
         <button class="secondary" onclick="showCompanyProfilePage()">PROFIL PERUSAHAAN</button>
         <button class="secondary" onclick="showReportPage()">LAPORAN HARIAN</button>
@@ -335,22 +334,6 @@ footer {
         <h4>DAFTAR AKUN</h4><div id="adminAccountList"></div>
 
         <button class="secondary" onclick="backToDashboard()">KEMBALI KE DASHBOARD</button>
-    </section>
-
-    <section id="ocrPage" class="card hidden">
-        <h3>FOTO SURAT JALAN - UJI OCR</h3>
-        <p>Foto semua halaman surat jalan. Jika tabel berlanjut ke halaman berikutnya, tambahkan halaman berikutnya sebelum menjalankan pembacaan.</p>
-        <label>Foto halaman (gunakan kamera belakang)</label>
-        <input id="ocrPhotoInput" type="file" accept="image/*" capture="environment">
-        <div id="ocrPhotoList" style="margin-top:12px"></div>
-        <button class="secondary" onclick="clearOcrPhotos()">HAPUS SEMUA FOTO</button>
-        <button onclick="runOcrTrial()">BACA SEMUA HALAMAN</button>
-        <p id="ocrStatus" style="font-size:13px"></p>
-        <h4>HASIL PEMBACAAN - HALAMAN DIGABUNG</h4>
-        <p style="font-size:12px">Periksa hasil OCR. Untuk trial ini hasil belum otomatis menjadi transaksi.</p>
-        <textarea id="ocrResultText" rows="14" placeholder="Hasil OCR Bahasa Indonesia akan tampil di sini..." style="width:100%;box-sizing:border-box"></textarea>
-        <button class="secondary" onclick="copyOcrResult()">SALIN HASIL OCR</button>
-        <button class="secondary" onclick="hideOcrPage()">KEMBALI KE DASHBOARD</button>
     </section>
 
     <section id="inputPage" class="card hidden">
@@ -477,7 +460,6 @@ footer {
 <script src="jsQR.js"></script>
 <script src="xlsx.full.min.js"></script>
 <script src="pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 let currentUser = null;
 let activeQr = null;
@@ -503,87 +485,6 @@ function localDateString() {
     return y + "-" + m + "-" + day;
 }
 
-let ocrPhotos = [];
-function showOcrPage(){
- ["inputPage","scannerPage","recapPage","reportPage","companyProfilePage"].forEach(id=>document.getElementById(id).classList.add("hidden"));
- document.getElementById("ocrPage").classList.remove("hidden");
- document.getElementById("ocrStatus").innerText="Tambahkan foto halaman pertama. Untuk dokumen beberapa halaman, tambahkan foto setiap halaman secara berurutan.";
- window.scrollTo({top:0,behavior:"smooth"});
-}
-function hideOcrPage(){document.getElementById("ocrPage").classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
-function renderOcrPhotos(){
- const box=document.getElementById("ocrPhotoList");
- if(!ocrPhotos.length){box.innerHTML="<p>Belum ada foto halaman.</p>";return;}
- box.innerHTML=ocrPhotos.map((file,i)=>'<div style="display:flex;align-items:center;gap:10px;margin:8px 0;padding:8px;border:1px solid #ddd;border-radius:8px"><img src="'+URL.createObjectURL(file)+'" style="width:64px;height:80px;object-fit:cover;border-radius:4px"><div><b>Halaman '+(i+1)+'</b><br><small>'+Math.round(file.size/1024)+' KB</small></div><button class="secondary" onclick="removeOcrPhoto('+i+')">HAPUS</button></div>').join("");
-}
-function removeOcrPhoto(index){ocrPhotos.splice(index,1);renderOcrPhotos();}
-function clearOcrPhotos(){ocrPhotos=[];document.getElementById("ocrPhotoInput").value="";document.getElementById("ocrResultText").value="";renderOcrPhotos();document.getElementById("ocrStatus").innerText="Foto dihapus.";}
-document.addEventListener("DOMContentLoaded",()=>{
- const input=document.getElementById("ocrPhotoInput");
- if(input)input.addEventListener("change",e=>{
-  const file=e.target.files&&e.target.files[0];if(!file)return;
-  if(!file.type.startsWith("image/")){alert("Pilih file foto/gambar.");return;}
-  ocrPhotos.push(file);renderOcrPhotos();e.target.value="";
-  document.getElementById("ocrStatus").innerText="Foto halaman "+ocrPhotos.length+" ditambahkan. Tambahkan halaman berikutnya jika ada.";
- });
-});
-function prepareOcrImage(file){
- return new Promise((resolve,reject)=>{
-  const img=new Image(),url=URL.createObjectURL(file);
-  img.onload=()=>{
-   try{
-    const maxWidth=2400,scale=Math.min(1,maxWidth/img.width);
-    const canvas=document.createElement("canvas");
-    canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
-    const ctx=canvas.getContext("2d",{willReadFrequently:true});
-    ctx.drawImage(img,0,0,canvas.width,canvas.height);
-    const frame=ctx.getImageData(0,0,canvas.width,canvas.height),d=frame.data;
-    for(let i=0;i<d.length;i+=4){
-     let gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-     gray=Math.max(0,Math.min(255,(gray-128)*1.28+128));
-     d[i]=d[i+1]=d[i+2]=gray;
-    }
-    ctx.putImageData(frame,0,0);
-    URL.revokeObjectURL(url);
-    canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Gagal memproses foto.")),"image/png");
-   }catch(err){URL.revokeObjectURL(url);reject(err);}
-  };
-  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Foto tidak dapat dibuka."));};
-  img.src=url;
- });
-}
-async function runOcrTrial(){
- const status=document.getElementById("ocrStatus");
- const output=document.getElementById("ocrResultText");
- if(!ocrPhotos.length){alert("Foto minimal satu halaman terlebih dahulu.");return;}
- if(!window.Tesseract){status.innerText="Mesin OCR belum termuat. Untuk uji pertama, sambungkan internet lalu muat ulang aplikasi.";return;}
- let worker;
- output.value="";
- try{
-  status.innerText="Menyiapkan mesin OCR Bahasa Indonesia... (pertama kali perlu internet untuk memuat mesin dan data bahasa)";
-  worker=await Tesseract.createWorker("ind",1,{logger:m=>{
-   if(m.status==="recognizing text")status.innerText="Membaca halaman "+(window.ocrCurrentPage||1)+" dari "+ocrPhotos.length+" ("+Math.round((m.progress||0)*100)+"%)";
-  }});
-  await worker.setParameters({tessedit_pageseg_mode:"6",preserve_interword_spaces:"1"});
-  const all=[];
-  for(let i=0;i<ocrPhotos.length;i++){
-   window.ocrCurrentPage=i+1;
-   status.innerText="Memperjelas dan membaca halaman "+(i+1)+" dari "+ocrPhotos.length+"...";
-   const prepared=await prepareOcrImage(ocrPhotos[i]);
-   const result=await worker.recognize(prepared);
-   all.push("===== HALAMAN "+(i+1)+" =====\n"+(result.data.text||"").trim());
-   output.value=all.join("\n\n");
-  }
-  status.innerText="Selesai membaca "+ocrPhotos.length+" halaman dengan OCR Bahasa Indonesia. Periksa kembali nama, nomor, Unit, Divisi, dan jumlah galon.";
- }catch(err){status.innerText="OCR gagal: "+(err&&err.message?err.message:String(err));}
- finally{if(worker)await worker.terminate();}
-}
-async function copyOcrResult(){
- const textValue=document.getElementById("ocrResultText").value;
- if(!textValue){alert("Belum ada hasil OCR untuk disalin.");return;}
- try{await navigator.clipboard.writeText(textValue);alert("Hasil OCR berhasil disalin.");}
- catch(e){document.getElementById("ocrResultText").select();alert("Pilih teks lalu salin secara manual.");}
-}
 function getTransactions() {
     return JSON.parse(localStorage.getItem("dwds_transactions") || "[]");
 }
