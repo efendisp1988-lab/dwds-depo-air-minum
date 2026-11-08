@@ -477,6 +477,15 @@ footer {
 }
 @media(max-width:359px){.dashboard-summary .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.module-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.module-action{min-height:92px!important}}
 
+
+/* Logout ringkas di appbar; tidak menjadi kartu grid terpisah */
+.dashboard-logout{width:auto;min-width:48px;margin:0;padding:6px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1px solid #ffffff70;border-radius:10px;background:#ffffff18;color:#fff;font-size:19px;line-height:1}
+.dashboard-logout small{font-size:8px;font-weight:700}
+@media(max-width:699px){
+ .dashboard-appbar{grid-template-columns:30px minmax(0,1fr) auto auto!important}
+ .dashboard-logout{min-width:40px;padding:5px 4px}
+}
+
 </style>
 </head>
 
@@ -514,6 +523,7 @@ footer {
         <button class="dashboard-menu-jump" type="button" onclick="document.getElementById('moduleCard').scrollIntoView({behavior:'smooth',block:'start'})" aria-label="Lompat ke menu utama">☰</button>
         <div class="dashboard-brand"><span class="brand-drop">💧</span><div><b>DWDS</b><small>DEPOT WATER DISTRIBUTION SYSTEM</small></div></div>
         <div class="dashboard-account"><span>👤</span><div id="dashboardAccount"><b>Pengguna</b><small>DWDS</small></div></div>
+        <button class="dashboard-logout" type="button" onclick="logout()" aria-label="Logout">↪ <small>Keluar</small></button>
     </div>
     <div class="card dashboard-welcome" id="welcomeCard">
         <div class="dashboard-welcome-copy">
@@ -702,10 +712,6 @@ footer {
         <button onclick="confirmDailyTask('sent')">KONFIRMASI LAPORAN SUDAH DIKIRIM KE KTU</button>
         <p id="reportMessage"></p><button class="secondary" onclick="hideReportPage()">KEMBALI KE DASHBOARD</button>
     </section>
-
-    <div class="card">
-        <button class="secondary" onclick="logout()">LOGOUT</button>
-    </div>
 
 </section>
 
