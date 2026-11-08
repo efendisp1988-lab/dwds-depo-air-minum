@@ -443,6 +443,40 @@ footer {
 }
 @media(min-width:700px){.dashboard-menu-jump{display:none!important}.dashboard-v2{padding:14px 18px 10px}.module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+
+/* DWDS V2.0 mobile dashboard UI only */
+@media(max-width:699px){
+ body:has(#dashboard:not(.hidden)){background:#eaf7fb!important}
+ .dashboard-v2{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:13px!important;padding:10px 12px 100px!important}
+ .dashboard-v2>.dashboard-appbar{order:0}.dashboard-v2>.dashboard-welcome{order:1}.dashboard-v2>.dashboard-summary{order:2}.dashboard-v2>.dashboard-modules{order:3}.dashboard-v2>.role-guide-card{order:4}.dashboard-v2>.dashboard-checklist{order:5}
+ .dashboard-appbar{min-height:66px!important;padding:10px 12px!important;grid-template-columns:34px minmax(0,1fr) auto!important;border-radius:17px!important;background:linear-gradient(110deg,#073d83,#087fbd)!important;box-shadow:0 6px 18px #063d832c!important}
+ .dashboard-menu-jump{font-size:25px!important}.dashboard-brand{gap:8px!important}.brand-drop{font-size:34px!important}.dashboard-brand b{font-size:23px!important;letter-spacing:.7px!important}.dashboard-brand small{font-size:7px!important;letter-spacing:.15px!important}
+ .dashboard-account{padding:7px 8px!important;border-radius:13px!important}.dashboard-account>span{font-size:22px!important}.dashboard-account b{font-size:10px!important}.dashboard-account small{font-size:8px!important}
+ .dashboard-welcome{min-height:145px!important;padding:18px!important;border-radius:17px!important;align-items:flex-end!important;background:linear-gradient(90deg,rgba(2,48,105,.78),rgba(4,95,147,.30)),url('dwds-background.png') center 78%/cover!important;box-shadow:0 5px 16px #075b8020!important}
+ .dashboard-welcome-copy{position:relative;z-index:1}.dashboard-welcome .dashboard-eyebrow{font-size:9px!important;letter-spacing:1px!important}.dashboard-welcome h3{font-size:21px!important;line-height:1.2!important;margin:7px 0!important}.dashboard-user{font-size:13px!important;margin:5px 0 0!important}.dashboard-welcome:after{font-size:54px!important;right:16px!important;top:12px!important}
+ .dashboard-v2>.dashboard-summary,.dashboard-v2>.dashboard-modules,.dashboard-v2>.role-guide-card,.dashboard-v2>.dashboard-checklist{padding:15px!important;border-radius:19px!important;background:#fff!important;border:1px solid #deedf2!important;box-shadow:0 5px 18px #145b7510!important}
+ .dashboard-section-title{gap:9px!important;margin-bottom:12px!important}.dashboard-section-title>span{font-size:23px!important}.dashboard-section-title h3{font-size:17px!important;color:#164f70!important}
+ .dashboard-summary .summary-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important}
+ .dashboard-summary .summary-item{min-width:0!important;min-height:108px!important;padding:10px 7px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:5px!important;border:1px solid #d7ebf2!important;border-radius:15px!important;background:#effaff!important}
+ .dashboard-summary .summary-icon{font-size:23px!important;line-height:1!important}.dashboard-summary .summary-item span:not(.summary-icon){min-height:25px!important;font-size:9px!important;line-height:1.2!important;overflow-wrap:anywhere!important}.dashboard-summary .summary-item b{font-size:21px!important;line-height:1.1!important}.dashboard-summary .summary-status b{font-size:12px!important;color:#16824c!important}
+ .dashboard-helper{font-size:12px!important;margin-bottom:12px!important}.module-group-label{font-size:10px!important;margin:13px 0 8px!important}
+ .module-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+ .module-action{min-width:0!important;min-height:106px!important;padding:9px 5px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;text-align:center!important;border-radius:15px!important;box-shadow:0 2px 5px #164f7010!important}
+ .module-action>span{font-size:27px!important;line-height:1!important}.module-action b{font-size:10px!important;line-height:1.22!important;text-align:center!important;overflow-wrap:anywhere!important}.module-action small{font-size:8px!important;line-height:1.2!important;text-align:center!important}
+ .module-action.module-primary{background:#e4f8fc!important;border-color:#a5dce8!important;color:#087eae!important}
+ .module-action.module-excel{background:linear-gradient(145deg,#e5f8ec,#d2f3df)!important;border-color:#9ed8b2!important;color:#176b39!important}
+ .module-action.module-qr{background:linear-gradient(145deg,#fff8dc,#ffedb0)!important;border-color:#f4d77a!important;color:#775400!important}
+ .module-action.module-scan{background:linear-gradient(145deg,#f0eaff,#e2d7ff)!important;border-color:#c7b6f3!important;color:#5532a0!important}
+ .module-action.module-report{background:linear-gradient(145deg,#e1fbf8,#c9f3ed)!important;border-color:#9bded5!important;color:#08766d!important}
+ .module-action.module-checklist{background:linear-gradient(145deg,#edf3f8,#dce7f0)!important;border-color:#c1d1df!important;color:#34556d!important}
+ .module-action.module-danger{background:linear-gradient(145deg,#fff0f1,#ffe1e5)!important;border-color:#efc4cc!important;color:#a83346!important}
+ .module-action.module-close{background:linear-gradient(145deg,#c52e35,#a91f2c)!important;border-color:#a91f2c!important;color:#fff!important}
+ .role-guide-card{background:linear-gradient(145deg,#fff,#effaff)!important;border:1px solid #b9e4f5!important}.role-guide-card .role-guide-badge{font-size:10px!important}.role-guide-card details summary{font-size:13px!important}.role-guide-card ul{font-size:12px!important;line-height:1.55!important}.role-guide-note{font-size:10px!important}
+ .mobile-bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:1000!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;padding:8px 5px calc(8px + env(safe-area-inset-bottom))!important;border-radius:0!important;background:linear-gradient(110deg,#073d83,#0759a9)!important;box-shadow:0 -5px 18px #123b2a24!important}
+ .mobile-bottom-nav button{min-width:0!important;padding:5px 1px!important;gap:3px!important}.mobile-bottom-nav button span{font-size:23px!important}.mobile-bottom-nav button b{font-size:9px!important}
+}
+@media(max-width:359px){.dashboard-summary .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.module-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.module-action{min-height:92px!important}}
+
 </style>
 </head>
 
