@@ -1029,7 +1029,17 @@ function adminCreateAccount() {
 function renderAdminAccountList() {
     const box=document.getElementById("adminAccountList"); if(!box)return;
     const users=getDwdsUsers();
-    box.innerHTML=users.map((u,i)=>'<div class="card" style="padding:10px;margin:8px 0"><b>'+escapeHtml(String(u.username))+'</b><br>'+escapeHtml(String(u.role||"Pengguna"))+' · '+(u.active===false?"NONAKTIF":"AKTIF")+(String(u.username).toLowerCase()==="admin"?'':'<br><button class="secondary" onclick="adminResetPassword('+i+')">RESET PASSWORD</button> <button class="secondary" onclick="toggleAccountStatus('+i+')">'+(u.active===false?"AKTIFKAN":"NONAKTIFKAN")+'</button>')+'</div>').join("");
+    box.innerHTML=users.map((u,i)=>'<div class="card" style="padding:12px;margin:8px 0"><b>'+escapeHtml(String(u.username))+'</b><br>'+escapeHtml(String(u.role||"Pengguna"))+' · '+(u.active===false?"NONAKTIF":"AKTIF")+'<br><div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span id="adminPasswordValue'+i+'" data-visible="false" style="font-weight:700;letter-spacing:1px">••••••••</span><button class="secondary" type="button" onclick="toggleAdminPassword('+i+')">LIHAT PASSWORD</button></div>'+(String(u.username).toLowerCase()==="admin"?'':'<br><button class="secondary" onclick="adminResetPassword('+i+')">RESET PASSWORD</button> <button class="secondary" onclick="toggleAccountStatus('+i+')">'+(u.active===false?"AKTIFKAN":"NONAKTIFKAN")+'</button>')+'</div>').join("");
+}
+function toggleAdminPassword(index) {
+    if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Hanya Administrator yang dapat melihat password.");return;}
+    const users=getDwdsUsers(); const user=users[index]; const field=document.getElementById("adminPasswordValue"+index);
+    if(!user || !field)return;
+    const visible=field.dataset.visible==="true";
+    field.textContent=visible?"••••••••":String(user.password||"(tidak tersedia)");
+    field.dataset.visible=visible?"false":"true";
+    const button=field.parentElement.querySelector("button");
+    if(button)button.textContent=visible?"LIHAT PASSWORD":"SEMBUNYIKAN PASSWORD";
 }
 function adminResetPassword(index) {
     if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
