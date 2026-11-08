@@ -337,6 +337,29 @@ footer {
 
 
 
+
+/* Login account notice: readable glass panel below the form */
+@media(max-width:699px){
+ body:has(#loginPage:not(.hidden)) .login-account-links{
+   max-width:calc(100% - 44px);
+   margin:42px auto 18px!important;
+   padding:11px 15px;
+   border:1px solid #ffffffd9;
+   border-radius:14px;
+   background:rgba(235,250,255,.88);
+   box-shadow:0 5px 16px #075b8020;
+   backdrop-filter:blur(6px);
+   transform:none!important;
+ }
+ body:has(#loginPage:not(.hidden)) .login-account-links p{
+   margin:0!important;
+   color:#245b7c!important;
+   font-size:12px!important;
+   line-height:1.55;
+   text-align:center;
+ }
+}
+
 /* Login mobile spacing: keep DWDS logo/title clear above the form */
 @media(max-width:699px) and (min-height:701px){
  body:has(#loginPage:not(.hidden)) #loginPage,
