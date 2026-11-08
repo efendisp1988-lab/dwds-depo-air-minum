@@ -1,4 +1,4 @@
-const CACHE_NAME = "dwds-shell-v6";
+const CACHE_NAME = "dwds-shell-v7";
 const FILES = [
   "./", "./index.html", "./pc.html", "./manifest.json", "./icon.svg",
   "./dwds-background.png", "./dwds-background-desktop.jpg",
