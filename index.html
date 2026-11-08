@@ -336,6 +336,21 @@ footer {
 }
 
 
+
+/* Login mobile spacing: keep DWDS logo/title clear above the form */
+@media(max-width:699px) and (min-height:701px){
+ body:has(#loginPage:not(.hidden)) #loginPage,
+ body:has(#loginPage:not(.hidden)) .login-account-links{
+   transform:translateY(34px);
+ }
+}
+@media(max-width:699px) and (max-height:700px){
+ body:has(#loginPage:not(.hidden)) #loginPage,
+ body:has(#loginPage:not(.hidden)) .login-account-links{
+   transform:translateY(12px);
+ }
+}
+
 /* DWDS Mobile visual upgrade: branded header, depot banner, 4 KPI cards */
 @media(max-width:699px){
  body:has(#dashboard:not(.hidden))>header{display:none}
