@@ -1901,7 +1901,7 @@ function printReportPdf(){
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("./sw.js").catch(function (err) { console.log("DWDS offline cache:", err); });
+    navigator.serviceWorker.register("./sw.js?build=8").then(function (registration) { registration.update(); }).catch(function (err) { console.log("DWDS offline cache:", err); });
   });
 }
 </script>
