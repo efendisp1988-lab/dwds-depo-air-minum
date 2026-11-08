@@ -335,6 +335,40 @@ footer {
  .mobile-bottom-nav button b{font-size:9px}
 }
 
+
+/* DWDS Mobile visual upgrade: branded header, depot banner, 4 KPI cards */
+@media(max-width:699px){
+ body:has(#dashboard:not(.hidden))>header{display:none}
+ .dashboard-v2{padding-top:8px}
+ .dashboard-appbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;margin:0 0 12px;border-radius:15px;background:linear-gradient(120deg,#073c80,#087fc0);color:#fff;box-shadow:0 5px 16px #06477a2a}
+ .dashboard-brand{display:flex;align-items:center;gap:8px;min-width:0}
+ .brand-drop{font-size:34px;line-height:1}
+ .dashboard-brand b{display:block;font-size:24px;letter-spacing:1px;line-height:1}
+ .dashboard-brand small{display:block;font-size:8px;letter-spacing:.4px;margin-top:4px;white-space:nowrap}
+ .dashboard-account{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid #ffffff70;border-radius:12px;background:#ffffff18;min-width:0}
+ .dashboard-account>span{font-size:22px}
+ .dashboard-account b,.dashboard-account small{display:block;max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .dashboard-account b{font-size:11px}.dashboard-account small{font-size:9px;opacity:.85}
+ .dashboard-welcome{min-height:150px;position:relative;overflow:hidden;background:linear-gradient(90deg,#063e83eF,#087db7a8),url('dwds-background.png') center 65%/cover!important;color:#fff!important;border:0!important;display:flex;align-items:flex-end;padding:20px!important}
+ .dashboard-welcome:after{content:"💧";position:absolute;right:18px;top:17px;font-size:54px;opacity:.75}
+ .dashboard-welcome h3{color:#fff!important;font-size:22px;margin:5px 0}
+ .dashboard-welcome .dashboard-eyebrow{font-size:9px;letter-spacing:1px}
+ .dashboard-user{color:#fff;font-size:13px}
+ .dashboard-summary .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .dashboard-summary .summary-item{min-height:82px;padding:10px}
+ .dashboard-summary .summary-item b{font-size:22px}
+ .summary-status b{font-size:15px!important;color:#13834d!important}
+}
+@media(min-width:700px){
+ .dashboard-appbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:linear-gradient(120deg,#073c80,#087fc0);color:white;border-radius:15px}
+ .dashboard-brand{display:flex;align-items:center;gap:10px}.brand-drop{font-size:36px}
+ .dashboard-brand b{display:block;font-size:26px}.dashboard-brand small{display:block;font-size:10px}
+ .dashboard-account{display:flex;align-items:center;gap:9px}.dashboard-account b,.dashboard-account small{display:block}
+ .dashboard-welcome{background:linear-gradient(90deg,#063e83eF,#087db7a8),url('dwds-background-desktop.jpg') center/cover!important;min-height:180px;justify-content:flex-end}
+ .dashboard-welcome h3,.dashboard-welcome p,.dashboard-welcome .dashboard-eyebrow{color:#fff}
+ .dashboard-summary .summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
 </style>
 </head>
 
@@ -368,14 +402,16 @@ footer {
 
 <section id="dashboard" class="hidden dashboard-v2">
 
+    <div class="dashboard-appbar">
+        <div class="dashboard-brand"><span class="brand-drop">💧</span><div><b>DWDS</b><small>DEPOT WATER DISTRIBUTION SYSTEM</small></div></div>
+        <div class="dashboard-account"><span>👤</span><div id="dashboardAccount"><b>Pengguna</b><small>DWDS</small></div></div>
+    </div>
     <div class="card dashboard-welcome" id="welcomeCard">
         <div class="dashboard-welcome-copy">
-            <span class="dashboard-eyebrow">DEPO WATER DISTRIBUTION SYSTEM</span>
+            <span class="dashboard-eyebrow">SISTEM DISTRIBUSI AIR MINUM GALON</span>
             <h3>SELAMAT DATANG DI DWDS</h3>
             <p id="userInfo" class="dashboard-user"></p>
-            <p id="operationalStatus" class="dashboard-status">Status: BELUM OPEN</p>
         </div>
-        <div class="dashboard-welcome-icon" aria-hidden="true">💧</div>
     </div>
 
     <div class="card dashboard-summary" id="summaryCard">
@@ -384,6 +420,7 @@ footer {
             <div class="summary-item"><span class="summary-icon">📄</span><span>Total Surat</span><b id="totalSurat">0</b></div>
             <div class="summary-item"><span class="summary-icon">👥</span><span>Total Penerima</span><b id="totalPenerima">0</b></div>
             <div class="summary-item"><span class="summary-icon">💧</span><span>Total Galon</span><b id="totalGalon">0</b></div>
+            <div class="summary-item summary-status"><span class="summary-icon">🟢</span><span>Status Operasional</span><b id="summaryOperationalStatus">CLOSED</b></div>
         </div>
     </div>
 
@@ -683,6 +720,8 @@ function login() {
         document.getElementById("loginPage").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("userInfo").innerText = user.username + " | " + user.role;
+        const accountBox=document.getElementById("dashboardAccount");
+        if(accountBox) accountBox.innerHTML="<b>"+escapeHtml(user.username)+"</b><small>"+escapeHtml(user.role)+"</small>";
         updateRoleGuide(user);
         const manageButton = document.getElementById("dataManagementButton");
         if (manageButton) manageButton.classList.toggle("hidden", !["administrator","ktu"].includes(String(user.role || "").trim().toLowerCase()));
@@ -1119,6 +1158,8 @@ function goDashboardHome(){
 function updateDashboard() {
     const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
     document.getElementById("operationalStatus").innerText = "Status: " + status;
+    const summaryStatus=document.getElementById("summaryOperationalStatus");
+    if(summaryStatus){summaryStatus.innerText=status;summaryStatus.style.color=status==="OPEN"?"#13834d":"#a33";}
 
     const data = getTransactions();
     const today = localDateString();
