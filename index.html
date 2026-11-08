@@ -338,6 +338,22 @@ footer {
 
 
 
+
+/* Keep the operational tagline visible above the login form */
+@media(max-width:699px){
+ body:has(#loginPage:not(.hidden)) #loginPage{position:relative;margin-top:38px!important}
+ body:has(#loginPage:not(.hidden)) #loginPage:before{
+   content:"SISTEM OPERASIONAL DEPO AIR";
+   position:absolute;left:50%;top:-39px;transform:translateX(-50%);
+   display:block;width:max-content;max-width:92%;
+   padding:5px 14px;border-radius:22px;
+   background:linear-gradient(90deg,#087fb7,#12a9c5);
+   color:#fff;font-size:12px;font-weight:700;letter-spacing:.35px;
+   text-align:center;white-space:nowrap;
+   box-shadow:0 3px 10px #075b8030;
+ }
+}
+
 /* Login account notice: readable glass panel below the form */
 @media(max-width:699px){
  body:has(#loginPage:not(.hidden)) .login-account-links{
