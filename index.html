@@ -579,6 +579,16 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
 #dashboardAccount small{display:block;}
 @media(max-width:699px){.account-role-icon{width:38px;height:38px;min-width:38px;font-size:21px;}}
 
+
+/* DWDS V2.2 - penyegaran ikon menu dan warna Input Surat Jalan */
+@media(max-width:699px){
+ .module-action>span{width:48px!important;height:48px!important;min-width:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:15px!important;background:linear-gradient(145deg,#ffffffed,#eaf6ffdb)!important;box-shadow:0 3px 9px #123d5b25,inset 0 1px 0 #fff!important;font-size:29px!important;line-height:1!important;filter:drop-shadow(0 2px 1px #173b5720);}
+ .module-action.module-input{background:linear-gradient(145deg,#e8f6ff,#cdeaff)!important;border-color:#9bcbea!important;color:#145783!important;}
+ .module-action.module-input>span{background:linear-gradient(145deg,#ffffff,#d9f0ff)!important;box-shadow:0 3px 9px #155b8730,inset 0 1px 0 #fff!important;}
+ .module-action.module-primary>span,.module-action.module-excel>span,.module-action.module-qr>span,.module-action.module-scan>span,.module-action.module-report>span,.module-action.module-checklist>span,.module-action.module-danger>span,.module-action.module-close>span{background:#ffffff30!important;box-shadow:0 3px 8px #062c4b25,inset 0 1px 0 #ffffff70!important;}
+ .module-action:active>span{transform:scale(.94);}
+}
+
 </style>
 </head>
 
@@ -642,7 +652,7 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
         <div class="module-group-label">OPERASIONAL & TRANSAKSI</div>
         <div class="module-grid">
             <button class="module-action module-primary" onclick="openOperational()"><span>▶️</span><b>OPEN OPERASIONAL</b></button>
-            <button class="module-action" onclick="showInputForm()"><span>📝</span><b>INPUT SURAT JALAN</b></button>
+            <button class="module-action module-input" onclick="showInputForm()"><span>📝</span><b>INPUT SURAT JALAN</b></button>
             <button class="module-action module-excel" onclick="openExcelImport()"><span>📊</span><b>IMPORT EXCEL</b></button>
             <button class="module-action module-qr" onclick="openQrManager()"><span>▦</span><b>BUAT QR CODE</b></button>
             <button class="module-action module-scan" onclick="showScanner()"><span>📷</span><b>SCAN QR CODE</b></button>
