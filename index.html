@@ -690,9 +690,8 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
         <p class="dashboard-helper">Pilih modul sesuai kegiatan yang akan dilakukan.</p>
         <div class="module-group-label">OPERASIONAL & TRANSAKSI</div>
         <div class="module-grid">
-            <button class="module-action module-primary" onclick="openOperational()"><span>▶️</span><b>OPEN OPERASIONAL</b></button>
+            <button class="module-action module-primary" id="openOperationalButton" onclick="openOperational()"><span>▶️</span><b>OPEN OPERASIONAL</b></button>
             <button class="module-action module-input" onclick="showInputForm()"><span>📝</span><b>INPUT SURAT JALAN</b></button>
-            <button class="module-action module-excel" onclick="openExcelImport()"><span>📊</span><b>IMPORT EXCEL</b></button>
             <button class="module-action module-qr" onclick="openQrManager()"><span>▦</span><b>BUAT QR CODE</b></button>
             <button class="module-action module-scan" onclick="showScanner()"><span>📷</span><b>SCAN QR CODE</b></button>
             <button class="module-action module-recap" onclick="showRecap()"><span>🧾</span><b>REKAP TRANSAKSI</b></button>
@@ -701,7 +700,7 @@ body:has(#dashboard:not(.hidden)) .container { max-width:100% !important; paddin
             <button class="module-action module-profile" onclick="showCompanyProfilePage()"><span>🏬</span><b>PROFIL PERUSAHAAN</b></button>
             <button class="module-action module-danger hidden" id="dataManagementButton" onclick="showDataManagement()"><span>🗂️</span><b>KELOLA / HAPUS LAPORAN</b><small>Administrator / KTU</small></button>
             <button class="module-action module-danger hidden" id="accountManagementButton" onclick="showAdminAccounts()"><span>👤</span><b>KELOLA AKUN</b><small>Administrator</small></button>
-            <button class="module-action module-close" onclick="closeOperational()"><span>⏹️</span><b>CLOSE OPERASIONAL</b></button>
+            <button class="module-action module-close hidden" id="closeOperationalButton" onclick="closeOperational()"><span>⏹️</span><b>CLOSE OPERASIONAL</b></button>
         </div>
     </div>
 
@@ -1428,6 +1427,12 @@ function goDashboardHome(){
 }
 function updateDashboard() {
     const status = localStorage.getItem("dwds_status") || "BELUM OPEN";
+    const isOpen=status==="OPEN";
+    const openButton=document.getElementById("openOperationalButton");
+    const closeButton=document.getElementById("closeOperationalButton");
+    if(openButton){openButton.classList.toggle("hidden",isOpen);const label=openButton.querySelector("b");if(label)label.textContent="OPEN OPERASIONAL";}
+    if(closeButton){closeButton.classList.toggle("hidden",!isOpen);const label=closeButton.querySelector("b");if(label)label.textContent="CLOSE OPERASIONAL";}
+
     document.getElementById("operationalStatus").innerText = "Status: " + status;
     const summaryStatus=document.getElementById("summaryOperationalStatus");
     if(summaryStatus){summaryStatus.innerText=status;summaryStatus.style.color=status==="OPEN"?"#13834d":"#b4232f";const statusIcon=summaryStatus.parentElement.querySelector(".summary-icon");if(statusIcon)statusIcon.textContent=status==="OPEN"?"🟢":"🔴";}
