@@ -994,12 +994,14 @@ function login() {
 function showAdminAccounts() {
     if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Hanya Administrator yang dapat mengelola akun.");return;}
     document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>{el.dataset.wasHidden=el.classList.contains("hidden")?"1":"0";el.classList.add("hidden");});
+    const welcome=document.getElementById("welcomeCard");if(welcome){welcome.dataset.adminWasHidden=welcome.classList.contains("hidden")?"1":"0";welcome.classList.add("hidden");}
     document.getElementById("adminAccountsPage").classList.remove("hidden");
     renderAdminAccountList();
     window.scrollTo({top:0,behavior:"smooth"});
 }
 function backToDashboard() {
     document.getElementById("adminAccountsPage").classList.add("hidden");
+    const welcome=document.getElementById("welcomeCard");if(welcome&&welcome.dataset.adminWasHidden!==undefined){if(welcome.dataset.adminWasHidden==="0")welcome.classList.remove("hidden");delete welcome.dataset.adminWasHidden;}
     document.querySelectorAll("#dashboard > .card, #dashboard > section").forEach(el=>{
         if(el.dataset.wasHidden==="1")el.classList.add("hidden");else el.classList.remove("hidden");
         delete el.dataset.wasHidden;
@@ -1029,7 +1031,7 @@ function adminCreateAccount() {
 function renderAdminAccountList() {
     const box=document.getElementById("adminAccountList"); if(!box)return;
     const users=getDwdsUsers();
-    box.innerHTML=users.map((u,i)=>'<div class="card" style="padding:12px;margin:8px 0"><b>'+escapeHtml(String(u.username))+'</b><br>'+escapeHtml(String(u.role||"Pengguna"))+' · '+(u.active===false?"NONAKTIF":"AKTIF")+'<div style="margin-top:8px;display:flex;flex-direction:column;align-items:stretch;gap:8px"><span id="adminPasswordValue'+i+'" data-visible="false" style="display:block;font-weight:700;letter-spacing:1px;padding:4px 0">••••••••</span><button class="secondary" style="margin:0;width:100%" type="button" onclick="toggleAdminPassword('+i+')">LIHAT PASSWORD</button></div>'+(String(u.username).toLowerCase()==="admin"?'':'<br><button class="secondary" onclick="adminResetPassword('+i+')">RESET PASSWORD</button> <button class="secondary" onclick="toggleAccountStatus('+i+')">'+(u.active===false?"AKTIFKAN":"NONAKTIFKAN")+'</button>')+'</div>').join("");
+    box.innerHTML=users.map((u,i)=>'<div class="card" style="padding:12px;margin:8px 0"><b>'+escapeHtml(String(u.username))+'</b><br>'+escapeHtml(String(u.role||"Pengguna"))+' · '+(u.active===false?"NONAKTIF":"AKTIF")+'<div style="margin-top:8px;display:flex;align-items:center;gap:10px"><span id="adminPasswordValue'+i+'" data-visible="false" style="flex:1;min-width:0;font-weight:700;letter-spacing:1px">••••••••</span><button class="secondary" style="margin:0;padding:8px;width:44px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;font-size:22px" type="button" aria-label="Lihat password" title="Lihat password" onclick="toggleAdminPassword('+i+')">👁</button></div>'+(String(u.username).toLowerCase()==="admin"?'':'<br><button class="secondary" onclick="adminResetPassword('+i+')">RESET PASSWORD</button> <button class="secondary" onclick="toggleAccountStatus('+i+')">'+(u.active===false?"AKTIFKAN":"NONAKTIFKAN")+'</button>')+'</div>').join("");
 }
 function toggleAdminPassword(index) {
     if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator"){alert("Hanya Administrator yang dapat melihat password.");return;}
@@ -1039,7 +1041,7 @@ function toggleAdminPassword(index) {
     field.textContent=visible?"••••••••":String(user.password||"(tidak tersedia)");
     field.dataset.visible=visible?"false":"true";
     const button=field.parentElement.querySelector("button");
-    if(button)button.textContent=visible?"LIHAT PASSWORD":"SEMBUNYIKAN PASSWORD";
+    if(button){button.textContent=visible?"👁":"🙈";button.setAttribute("aria-label",visible?"Lihat password":"Sembunyikan password");button.title=visible?"Lihat password":"Sembunyikan password";}
 }
 function adminResetPassword(index) {
     if(!currentUser || String(currentUser.role||"").toLowerCase()!=="administrator")return;
